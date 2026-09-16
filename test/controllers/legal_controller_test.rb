@@ -9,6 +9,7 @@ class LegalControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Chính sách quyền riêng tư"
     assert_includes response.body, "Limited Use"
+    assert_includes response.body, "Hộ Kinh Doanh Nguyễn Phương Trà"
     assert_includes response.body, LegalController::CONTACT_EMAIL
   end
 
