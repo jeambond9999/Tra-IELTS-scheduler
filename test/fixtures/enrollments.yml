@@ -1,0 +1,60 @@
+# == Schema Information
+#
+# Table name: enrollments
+# Database name: primary
+#
+#  id                 :bigint           not null, primary key
+#  active             :boolean          default(TRUE), not null
+#  course_name        :string           not null
+#  duration_minutes   :integer          not null
+#  frequency_per_week :integer          not null
+#  meet_link          :string           not null
+#  payment_status     :string           default("Đã đóng Full"), not null
+#  start_date         :date             not null
+#  total_sessions     :integer          not null
+#  tuition_note       :text
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  sales_id           :bigint           not null
+#  student_id         :bigint           not null
+#  teacher_id         :bigint           not null
+#
+# Indexes
+#
+#  index_enrollments_on_sales_id    (sales_id)
+#  index_enrollments_on_student_id  (student_id)
+#  index_enrollments_on_teacher_id  (teacher_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (sales_id => people.id)
+#  fk_rails_...  (student_id => students.id)
+#  fk_rails_...  (teacher_id => people.id)
+#
+writing_minh:
+  student: minh
+  teacher: ha_teacher
+  sales: sales_nhien
+  course_name: IELTS Writing Intensive
+  payment_status: Đã đóng Full
+  tuition_note:
+  meet_link: https://meet.google.com/minh-writing
+  start_date: 2026-08-10
+  total_sessions: 10
+  frequency_per_week: 2
+  duration_minutes: 40
+  active: true
+
+speaking_lan:
+  student: lan
+  teacher: giang_teacher
+  sales: sales_nhien
+  course_name: IELTS Speaking
+  payment_status: Đã đóng Đợt 1
+  tuition_note: Còn 2tr, hẹn 15/08
+  meet_link: https://meet.google.com/lan-speaking
+  start_date: 2026-08-11
+  total_sessions: 8
+  frequency_per_week: 1
+  duration_minutes: 40
+  active: true

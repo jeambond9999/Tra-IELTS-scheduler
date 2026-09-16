@@ -1,0 +1,22 @@
+# Database Consistency configuration
+# See: https://github.com/djezzzl/database_consistency
+#
+# database_consistency 3 loads this file with YAML.safe_load (no symbols) and
+# reads global toggles under the DatabaseConsistencyCheckers/All namespace.
+
+# Enable all checkers by default
+DatabaseConsistencyCheckers:
+  All:
+    enabled: true
+
+# Disable a specific checker, e.g.:
+# ColumnPresenceChecker:
+#   enabled: false
+
+# Ignore specific models or columns, e.g.:
+# User:
+#   email:
+#     enabled: false
+
+# Log settings (string, not a symbol, in v3)
+log_level: warn

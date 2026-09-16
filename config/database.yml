@@ -1,0 +1,51 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  timeout: 5000
+  username: <%= ENV["POSTGRES_USER"] %>
+  password: <%= ENV["POSTGRES_PASSWORD"] %>
+  host: <%= ENV.fetch("POSTGRES_HOST", "localhost") %>
+  port: <%= ENV.fetch("POSTGRES_PORT", 5432) %>
+
+development:
+  primary:
+    <<: *default
+    database: <%= ENV.fetch("POSTGRES_DB", "meng_schedule_development") %>
+  cache:
+    <<: *default
+    database: <%= ENV.fetch("POSTGRES_CACHE_DB", "meng_schedule_development_cache") %>
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *default
+    database: <%= ENV.fetch("POSTGRES_QUEUE_DB", "meng_schedule_development_queue") %>
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *default
+    database: <%= ENV.fetch("POSTGRES_CABLE_DB", "meng_schedule_development_cable") %>
+    migrations_paths: db/cable_migrate
+
+test:
+  primary:
+    adapter: sqlite3
+    database: storage/test.sqlite3
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    timeout: 5000
+    schema_format: ruby
+
+production:
+  primary:
+    <<: *default
+    url: <%= ENV["DATABASE_URL"] %>
+  cache:
+    <<: *default
+    url: <%= ENV.fetch("CACHE_DATABASE_URL", ENV["DATABASE_URL"]) %>
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *default
+    url: <%= ENV.fetch("QUEUE_DATABASE_URL", ENV["DATABASE_URL"]) %>
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *default
+    url: <%= ENV.fetch("CABLE_DATABASE_URL", ENV["DATABASE_URL"]) %>
+    migrations_paths: db/cable_migrate

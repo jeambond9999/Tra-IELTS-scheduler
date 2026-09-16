@@ -1,0 +1,31 @@
+# Lefthook configuration
+# https://github.com/evilmartians/lefthook
+
+pre-commit:
+  parallel: true
+  commands:
+    biome:
+      glob: "app/frontend/**/*.{ts,tsx}"
+      run: npx biome check --write {staged_files}
+      stage_fixed: true
+
+    rubocop:
+      glob: "**/*.rb"
+      exclude:
+        - "db/schema.rb"
+        - "vendor/**/*"
+      run: bundle exec rubocop -A {staged_files}
+      stage_fixed: true
+
+    typescript:
+      glob: "app/frontend/**/*.{ts,tsx}"
+      run: npm run check
+
+pre-push:
+  parallel: true
+  commands:
+    rails-test:
+      run: bin/rails test
+
+    biome-lint:
+      run: npm run biome:check

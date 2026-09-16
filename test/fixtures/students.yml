@@ -1,0 +1,34 @@
+# == Schema Information
+#
+# Table name: students
+# Database name: primary
+#
+#  id           :bigint           not null, primary key
+#  aim          :string
+#  baseline     :string
+#  code         :string           not null
+#  exam_date    :date
+#  name         :string           not null
+#  student_note :text
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#
+# Indexes
+#
+#  index_students_on_code  (code) UNIQUE
+#
+minh:
+  name: Nguyễn Văn Minh
+  code: HV001
+  baseline: "5.0"
+  aim: "7.0"
+  exam_date: 2026-12-30
+  student_note: Weak Speaking Part 2
+
+lan:
+  name: Trần Ngọc Lan
+  code: HV002
+  baseline: "5.5"
+  aim: "7.5"
+  exam_date: 2026-11-20
+  student_note:

@@ -1,0 +1,27 @@
+# Omakase Ruby styling for Rails
+inherit_gem: { rubocop-rails-omakase: rubocop.yml }
+
+AllCops:
+  NewCops: enable
+  Exclude:
+    - "node_modules/**/*"
+    - "vendor/**/*"
+    - "db/schema.rb"
+    - "db/migrate/**/*"
+    - "bin/*"
+
+# Overwrite or add rules to create your own house style
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Layout/SpaceInsideArrayLiteralBrackets:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - "config/initializers/*"

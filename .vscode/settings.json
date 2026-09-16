@@ -1,0 +1,8 @@
+{
+  "[markdown]": {
+    "editor.inlineSuggest.enabled": false
+  },
+  "[mdx]": {
+    "editor.inlineSuggest.enabled": false
+  }
+}
