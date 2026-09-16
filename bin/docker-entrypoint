@@ -3,6 +3,14 @@
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
+  # cache/queue/cable share the same physical database as primary (see
+  # config/database.yml), so they share its schema_migrations table too.
+  # db:prepare's "needs migration?" check reads that shared table and
+  # thinks these three are already up to date, skipping their schema
+  # load entirely and leaving the solid_queue/solid_cache/solid_cable
+  # tables missing. Force-load them explicitly every boot instead; this
+  # only recreates those specific (disposable, job/cache/cable) tables.
+  ./bin/rails db:schema:load:cache db:schema:load:queue db:schema:load:cable
 fi
 
 exec "${@}"
