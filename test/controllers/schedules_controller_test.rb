@@ -19,8 +19,8 @@ class SchedulesControllerTest < ActionDispatch::IntegrationTest
   test "gets scheduler index when authenticated" do
     get root_url, params: {
       role: "teacher",
-      person_id: people(:ha_teacher).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:ha_teacher).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     }
@@ -34,8 +34,8 @@ class SchedulesControllerTest < ActionDispatch::IntegrationTest
 
     get root_path, params: {
       role: "teacher",
-      person_id: people(:ha_teacher).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:ha_teacher).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     }
@@ -46,8 +46,8 @@ class SchedulesControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal "localhost", location.host
     assert_equal "teacher", query_params.fetch("role")
-    assert_equal people(:ha_teacher).id.to_s, query_params.fetch("person_id")
-    assert_equal people(:ha_teacher).id.to_s, query_params.fetch("teacher_id")
+    assert_equal users(:ha_teacher).id.to_s, query_params.fetch("person_id")
+    assert_equal users(:ha_teacher).id.to_s, query_params.fetch("teacher_id")
     assert_equal "2026-08", query_params.fetch("month_key")
     assert_equal "Tuần 3", query_params.fetch("week_name")
   end
@@ -57,7 +57,29 @@ class SchedulesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "scheduler/index"
-    assert_equal Person.active.teachers.order(:name).first!.id, inertia_props.fetch("selected").fetch("teacherId")
+    assert_equal User.active.teachers.order(:name).first!.id, inertia_props.fetch("selected").fetch("teacherId")
+  end
+
+  test "teacher always sees their own schedule even when another teacher is requested" do
+    sign_in users(:giang_teacher)
+
+    get root_url, params: { role: "teacher", person_id: users(:ha_teacher).id, teacher_id: users(:ha_teacher).id }
+
+    assert_response :success
+    assert_equal users(:giang_teacher).id, inertia_props.fetch("selected").fetch("teacherId")
+    assert_equal users(:giang_teacher).id, inertia_props.fetch("selected").fetch("personId")
+  end
+
+  test "newly created teacher account sees its own empty schedule, not another teacher's" do
+    newcomer = User.create!(name: "Test Giáo Viên", email: "newcomer@example.com", password: "password123", roles: "teacher")
+    sign_in newcomer
+
+    get root_url, params: { month_key: "2026-08", week_name: "Tuần 3" }
+
+    assert_response :success
+    assert_equal newcomer.id, inertia_props.fetch("selected").fetch("teacherId")
+    assert_empty inertia_props.fetch("lessonSessions")
+    assert_empty inertia_props.fetch("studentTracking")
   end
 
   test "defaults an invalid month key to the current month" do
@@ -78,7 +100,7 @@ class SchedulesControllerTest < ActionDispatch::IntegrationTest
 
   test "renders scheduler snapshot props with frontend camel case keys" do
     get root_url, params: {
-      teacher_id: people(:ha_teacher).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     }
@@ -93,14 +115,16 @@ class SchedulesControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, inertia_props.fetch("monthSummary").fetch("totalCa")
     assert_equal "Tuần 1", inertia_props.fetch("weeklyKpis").first.fetch("week")
     assert_equal 28, inertia_props.fetch("people").fetch("teachers").first.fetch("weeklyAvailabilityTarget")
+    assert_equal "teacher", inertia_props.fetch("people").fetch("teachers").first.fetch("role")
+    assert_equal [ "CS Mai" ], inertia_props.fetch("people").fetch("cs").map { |member| member.fetch("name") }
     assert_equal "HV001", inertia_props.fetch("studentTracking").first.fetch("studentCode")
   end
 
   test "accepts frontend camel case scheduler query params" do
     get root_url, params: {
       role: "teacher",
-      personId: people(:ha_teacher).id,
-      teacherId: people(:ha_teacher).id,
+      personId: users(:ha_teacher).id,
+      teacherId: users(:ha_teacher).id,
       monthKey: "2026-08",
       weekName: "Tuần 1"
     }

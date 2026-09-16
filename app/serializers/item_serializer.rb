@@ -3,15 +3,16 @@
 # == Schema Information
 #
 # Table name: items
+# Database name: primary
 #
-#  id           :integer          not null, primary key
+#  id           :bigint           not null, primary key
 #  description  :text
 #  discarded_at :datetime
 #  name         :string           not null
 #  phone_number :string
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
-#  user_id      :integer          not null
+#  user_id      :bigint           not null
 #
 # Indexes
 #
@@ -20,7 +21,7 @@
 #
 # Foreign Keys
 #
-#  user_id  (user_id => users.id)
+#  fk_rails_...  (user_id => users.id)
 #
 class ItemSerializer < BaseSerializer
   object_as :item, model: "Item"

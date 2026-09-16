@@ -3,19 +3,23 @@
 # == Schema Information
 #
 # Table name: users
+# Database name: primary
 #
-#  id                     :integer          not null, primary key
-#  avatar_url             :string
-#  email                  :string           default(""), not null
-#  encrypted_password     :string           default(""), not null
-#  name                   :string
-#  provider               :string
-#  remember_created_at    :datetime
-#  reset_password_sent_at :datetime
-#  reset_password_token   :string
-#  uid                    :string
-#  created_at             :datetime         not null
-#  updated_at             :datetime         not null
+#  id                         :bigint           not null, primary key
+#  active                     :boolean          default(TRUE), not null
+#  avatar_url                 :string
+#  email                      :string           default(""), not null
+#  encrypted_password         :string           default(""), not null
+#  name                       :string
+#  provider                   :string
+#  remember_created_at        :datetime
+#  reset_password_sent_at     :datetime
+#  reset_password_token       :string
+#  roles                      :string           default("teacher"), not null
+#  uid                        :string
+#  weekly_availability_target :integer
+#  created_at                 :datetime         not null
+#  updated_at                 :datetime         not null
 #
 # Indexes
 #
@@ -26,7 +30,7 @@
 class UserSerializer < BaseSerializer
   object_as :user, model: "User"
 
-  attributes :id, :name, :email, :avatar_url, :roles, :roles_list, :person_id, :person_name, :is_admin, :is_pure_admin
+  attributes :id, :name, :email, :avatar_url, :roles, :roles_list, :active, :is_admin, :is_pure_admin
 
   def roles_list
     user.roles_list
@@ -38,9 +42,5 @@ class UserSerializer < BaseSerializer
 
   def is_pure_admin
     user.pure_admin?
-  end
-
-  def person_name
-    user.person_name
   end
 end

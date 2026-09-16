@@ -5,7 +5,11 @@ class TeachersController < InertiaController
   before_action -> { authorize_roles!(:teacher) }
 
   def update
-    teacher = Person.teachers.find(params[:id])
+    teacher = User.teachers.find(params[:id])
+
+    unless current_user.admin? || teacher == current_user
+      return redirect_to_scheduler(alert: "Bạn chỉ được đổi mục tiêu ca rảnh của chính mình.")
+    end
 
     if teacher.update(teacher_params)
       redirect_to_scheduler(notice: "Đã cập nhật số ca rảnh mỗi tuần.")
@@ -17,7 +21,7 @@ class TeachersController < InertiaController
   private
 
   def teacher_params
-    params.require(:person).permit(:weekly_availability_target)
+    params.require(:teacher).permit(:weekly_availability_target)
   end
 
   def redirect_params

@@ -4,7 +4,6 @@
 export type { default as Enrollment } from './Enrollment'
 export type { default as Item } from './Item'
 export type { default as LessonSession } from './LessonSession'
-export type { default as Person } from './Person'
 export type { default as Student } from './Student'
 export type { default as TeacherAvailability } from './TeacherAvailability'
 export type { default as User } from './User'

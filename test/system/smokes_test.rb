@@ -20,8 +20,8 @@ class SmokesTest < ApplicationSystemTestCase
   test "calendar toolbar includes prototype save confirmation action" do
     visit root_path(
       role: "teacher",
-      person_id: people(:ha_teacher).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:ha_teacher).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -35,8 +35,8 @@ class SmokesTest < ApplicationSystemTestCase
   test "teacher weekly availability target updates the KPI row before save" do
     visit root_path(
       role: "teacher",
-      person_id: people(:giang_teacher).id,
-      teacher_id: people(:giang_teacher).id,
+      person_id: users(:giang_teacher).id,
+      teacher_id: users(:giang_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -67,8 +67,8 @@ class SmokesTest < ApplicationSystemTestCase
   test "teacher can override an individual weekly KPI target like the prototype" do
     visit root_path(
       role: "teacher",
-      person_id: people(:giang_teacher).id,
-      teacher_id: people(:giang_teacher).id,
+      person_id: users(:giang_teacher).id,
+      teacher_id: users(:giang_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -95,7 +95,7 @@ class SmokesTest < ApplicationSystemTestCase
   end
 
   test "clicking a teacher availability opens details before deletion" do
-    availabilities = Person.active.teachers.map do |teacher|
+    availabilities = User.active.teachers.map do |teacher|
       TeacherAvailability.create!(
         teacher: teacher,
         available_on: Date.new(2026, 8, 16),
@@ -107,8 +107,8 @@ class SmokesTest < ApplicationSystemTestCase
 
     visit root_path(
       role: "teacher",
-      person_id: people(:ha_teacher).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:ha_teacher).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -130,8 +130,8 @@ class SmokesTest < ApplicationSystemTestCase
   test "scheduler renders the prototype-style portal shell and grid" do
     visit root_path(
       role: "teacher",
-      person_id: people(:ha_teacher).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:ha_teacher).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -156,8 +156,8 @@ class SmokesTest < ApplicationSystemTestCase
   test "role selector uses prototype role tabs and person labels" do
     visit root_path(
       role: "teacher",
-      person_id: people(:ha_teacher).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:ha_teacher).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -180,8 +180,8 @@ class SmokesTest < ApplicationSystemTestCase
   test "teacher can switch between prototype teacher views" do
     visit root_path(
       role: "teacher",
-      person_id: people(:ha_teacher).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:ha_teacher).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -209,8 +209,8 @@ class SmokesTest < ApplicationSystemTestCase
   test "teacher can lock the month so registration slots stop changing" do
     visit root_path(
       role: "teacher",
-      person_id: people(:ha_teacher).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:ha_teacher).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -236,8 +236,8 @@ class SmokesTest < ApplicationSystemTestCase
 
     visit root_path(
       role: "teacher",
-      person_id: people(:ha_teacher).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:ha_teacher).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -263,8 +263,8 @@ class SmokesTest < ApplicationSystemTestCase
 
     visit root_path(
       role: "cs",
-      person_id: people(:cs_mai).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:cs_mai).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -285,8 +285,8 @@ class SmokesTest < ApplicationSystemTestCase
 
     visit root_path(
       role: "teacher",
-      person_id: people(:ha_teacher).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:ha_teacher).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -313,8 +313,8 @@ class SmokesTest < ApplicationSystemTestCase
 
     visit root_path(
       role: "teacher",
-      person_id: people(:ha_teacher).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:ha_teacher).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -340,7 +340,7 @@ class SmokesTest < ApplicationSystemTestCase
   test "lesson detail popup shows prototype fallback when sales note is blank" do
     lesson = LessonSession.create!(
       enrollment: enrollments(:speaking_lan),
-      teacher: people(:giang_teacher),
+      teacher: users(:giang_teacher),
       scheduled_on: Date.new(2026, 8, 11),
       start_time: "09:20",
       end_time: "10:00",
@@ -350,8 +350,8 @@ class SmokesTest < ApplicationSystemTestCase
 
     visit root_path(
       role: "teacher",
-      person_id: people(:giang_teacher).id,
-      teacher_id: people(:giang_teacher).id,
+      person_id: users(:giang_teacher).id,
+      teacher_id: users(:giang_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -366,8 +366,8 @@ class SmokesTest < ApplicationSystemTestCase
   test "sales booking dialog includes prototype meet link field" do
     visit root_path(
       role: "sales",
-      person_id: people(:sales_nhien).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:sales_nhien).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -380,8 +380,8 @@ class SmokesTest < ApplicationSystemTestCase
   test "sales booking dialog matches prototype tuition and frequency controls" do
     visit root_path(
       role: "sales",
-      person_id: people(:sales_nhien).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:sales_nhien).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -412,8 +412,8 @@ class SmokesTest < ApplicationSystemTestCase
 
     visit root_path(
       role: "sales",
-      person_id: people(:sales_nhien).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:sales_nhien).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -432,8 +432,8 @@ class SmokesTest < ApplicationSystemTestCase
 
     visit root_path(
       role: "cs",
-      person_id: people(:cs_mai).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:cs_mai).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -449,8 +449,8 @@ class SmokesTest < ApplicationSystemTestCase
 
     visit root_path(
       role: "cs",
-      person_id: people(:cs_mai).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:cs_mai).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -473,8 +473,8 @@ class SmokesTest < ApplicationSystemTestCase
 
     visit root_path(
       role: "cs",
-      person_id: people(:cs_mai).id,
-      teacher_id: people(:ha_teacher).id,
+      person_id: users(:cs_mai).id,
+      teacher_id: users(:ha_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )
@@ -504,7 +504,7 @@ class SmokesTest < ApplicationSystemTestCase
   test "cs lesson notes show the prototype calendar badge" do
     lesson = LessonSession.create!(
       enrollment: enrollments(:speaking_lan),
-      teacher: people(:giang_teacher),
+      teacher: users(:giang_teacher),
       scheduled_on: Date.new(2026, 8, 11),
       start_time: "09:20",
       end_time: "10:00",
@@ -514,8 +514,8 @@ class SmokesTest < ApplicationSystemTestCase
 
     visit root_path(
       role: "cs",
-      person_id: people(:cs_mai).id,
-      teacher_id: people(:giang_teacher).id,
+      person_id: users(:cs_mai).id,
+      teacher_id: users(:giang_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 3"
     )

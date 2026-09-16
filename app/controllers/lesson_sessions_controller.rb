@@ -7,6 +7,11 @@ class LessonSessionsController < InertiaController
 
   def update
     lesson = LessonSession.find(params[:id])
+    teacher_only = !(current_user.admin? || current_user.sales? || current_user.cs?)
+    if teacher_only && lesson.teacher_id != current_user.id
+      return redirect_to_scheduler(alert: "Bạn chỉ được cập nhật buổi học của chính mình.")
+    end
+
     enrollment = lesson.enrollment
     student = enrollment.student
 

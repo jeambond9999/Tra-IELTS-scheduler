@@ -41,7 +41,7 @@ class SchedulesController < InertiaController
       studentTracking: camelize_props(snapshot.fetch(:student_tracking)),
       csReservationReminders: camelize_props(snapshot.fetch(:cs_reservation_reminders)),
       adminStats: camelize_props(admin_stats),
-      adminUsers: current_user&.admin? ? UserSerializer.many(User.includes(:person).order(:id)) : [],
+      adminUsers: current_user&.admin? ? UserSerializer.many(User.order(:id)) : [],
       enrollments: EnrollmentSerializer.many(Enrollment.includes(:student, :teacher, lesson_sessions: :teacher).order(created_at: :desc))
     }
   end
@@ -61,16 +61,16 @@ class SchedulesController < InertiaController
 
   def people_props
     {
-      teachers: PersonSerializer.many(Person.active.teachers.order(:name)),
-      sales: PersonSerializer.many(Person.active.sales_people.order(:name)),
-      cs: PersonSerializer.many(Person.active.cs_people.order(:name))
+      teachers: StaffMemberSerializer.many(User.active.teachers.order(:name), role: "teacher"),
+      sales: StaffMemberSerializer.many(User.active.sales_people.order(:name), role: "sales"),
+      cs: StaffMemberSerializer.many(User.active.cs_people.order(:name), role: "cs")
     }
   end
 
   def admin_stats
-    return [] if current_user.present? && current_user.teacher? && !current_user.pure_admin?
+    return [] if locked_to_own_teacher_data?
 
-    Person.active.teachers.order(:name).map do |teacher|
+    User.active.teachers.order(:name).map do |teacher|
       snapshot = Schedules::CalendarSnapshot.new(
         month_key: selected_month_key,
         week_name: selected_week_name,
@@ -92,8 +92,12 @@ class SchedulesController < InertiaController
     end
   end
 
+  def locked_to_own_teacher_data?
+    current_user.teacher? && !current_user.pure_admin?
+  end
+
   def all_teachers_selected?
-    return false if current_user&.teacher? && !current_user&.pure_admin?
+    return false if locked_to_own_teacher_data?
 
     param = navigation_param(:teacher_id, :teacherId)
     param.to_s == "all" || (selected_role == "cs" && param.blank?)
@@ -101,12 +105,9 @@ class SchedulesController < InertiaController
 
   def selected_teacher_from_params
     return nil if all_teachers_selected?
+    return current_user if locked_to_own_teacher_data?
 
-    if current_user&.teacher? && !current_user&.pure_admin? && current_user.person_id.present?
-      return Person.active.teachers.find_by(id: current_user.person_id) || Person.find_by(id: current_user.person_id)
-    end
-
-    @selected_teacher_from_params ||= Person.active.teachers.find_by(id: navigation_param(:teacher_id, :teacherId)) || Person.active.teachers.order(:name).first || Person.first
+    @selected_teacher_from_params ||= User.active.teachers.find_by(id: navigation_param(:teacher_id, :teacherId)) || User.active.teachers.order(:name).first
   end
 
   def selected_role
@@ -133,32 +134,15 @@ class SchedulesController < InertiaController
 
   def default_person_for_role
     case selected_role
-    when "cs" then Person.active.cs_people.order(:name).first || Person.active.teachers.order(:name).first
-    when "sales" then Person.active.sales_people.order(:name).first || Person.active.teachers.order(:name).first
-    else Person.active.teachers.order(:name).first
+    when "cs" then User.active.cs_people.order(:name).first || User.active.teachers.order(:name).first
+    when "sales" then User.active.sales_people.order(:name).first || User.active.teachers.order(:name).first
+    else User.active.teachers.order(:name).first
     end
   end
 
-  def operational_person_for_user
-    return nil if current_user.blank?
-
-    if current_user.person.present?
-      return current_user.person if current_user.person.role == selected_role
-
-      matched = Person.active.where(name: current_user.person.name, role: selected_role).first
-      return matched if matched.present?
-
-      return current_user.person unless selected_role == "admin"
-    end
-
-    nil
-  end
-
+  # Only a pure admin may browse another staff member's view; everyone else always sees their own.
   def selected_person_id
-    if current_user.present? && !current_user.pure_admin?
-      matched_person = operational_person_for_user
-      return matched_person.id if matched_person.present?
-    end
+    return current_user.id unless current_user.pure_admin? || selected_role == "admin"
 
     navigation_param(:person_id, :personId).presence || default_person_for_role&.id
   end

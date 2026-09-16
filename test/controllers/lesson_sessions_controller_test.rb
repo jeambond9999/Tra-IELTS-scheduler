@@ -13,13 +13,13 @@ class LessonSessionsControllerTest < ActionDispatch::IntegrationTest
         lesson_notes: "Done"
       },
       role: "cs",
-      person_id: people(:cs_mai).id,
-      teacher_id: people(:giang_teacher).id,
+      person_id: users(:cs_mai).id,
+      teacher_id: users(:giang_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 2"
     }
 
-    assert_redirected_to root_path(role: "cs", person_id: people(:cs_mai).id, teacher_id: people(:giang_teacher).id, month_key: "2026-08", week_name: "Tuần 2")
+    assert_redirected_to root_path(role: "cs", person_id: users(:cs_mai).id, teacher_id: users(:giang_teacher).id, month_key: "2026-08", week_name: "Tuần 2")
 
     lesson_sessions(:minh_day_one).reload
     assert_equal "normal", lesson_sessions(:minh_day_one).cs_form
@@ -34,13 +34,13 @@ class LessonSessionsControllerTest < ActionDispatch::IntegrationTest
         start_time: "10:00"
       },
       role: "cs",
-      person_id: people(:cs_mai).id,
-      teacher_id: people(:giang_teacher).id,
+      person_id: users(:cs_mai).id,
+      teacher_id: users(:giang_teacher).id,
       month_key: "2026-08",
       week_name: "Tuần 2"
     }
 
-    assert_redirected_to root_path(role: "cs", person_id: people(:cs_mai).id, teacher_id: people(:giang_teacher).id, month_key: "2026-08", week_name: "Tuần 2")
+    assert_redirected_to root_path(role: "cs", person_id: users(:cs_mai).id, teacher_id: users(:giang_teacher).id, month_key: "2026-08", week_name: "Tuần 2")
 
     lesson = lesson_sessions(:minh_day_one).reload
     assert_equal Date.new(2026, 8, 12), lesson.scheduled_on
@@ -61,7 +61,7 @@ class LessonSessionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "allows teacher to write lesson notes" do
-    sign_in users(:two)
+    sign_in users(:ha_teacher)
     lesson = lesson_sessions(:minh_day_one)
 
     patch lesson_session_url(lesson), params: { lesson_session: { lesson_notes: "Reviewed outline" } }
@@ -69,8 +69,19 @@ class LessonSessionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Reviewed outline", lesson.reload.lesson_notes
   end
 
+  test "rejects teacher from editing another teacher's lesson" do
+    sign_in users(:giang_teacher)
+    lesson = lesson_sessions(:minh_day_one)
+
+    assert_no_changes -> { lesson.reload.lesson_notes } do
+      patch lesson_session_url(lesson), params: { lesson_session: { lesson_notes: "Not my class" } }
+    end
+
+    assert_equal "Bạn chỉ được cập nhật buổi học của chính mình.", flash[:alert]
+  end
+
   test "rejects teacher from rescheduling a lesson" do
-    sign_in users(:two)
+    sign_in users(:ha_teacher)
     lesson = lesson_sessions(:minh_day_one)
     original_date = lesson.scheduled_on
 
@@ -83,7 +94,7 @@ class LessonSessionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "allows cs to reschedule a lesson" do
-    sign_in users(:four)
+    sign_in users(:cs_mai)
     lesson = lesson_sessions(:minh_day_one)
 
     patch reschedule_lesson_session_url(lesson), params: {

@@ -27,18 +27,19 @@
 #  index_lesson_sessions_on_rescheduled_from_id  (rescheduled_from_id)
 #  index_lesson_sessions_on_teacher_id           (teacher_id)
 #  index_lessons_on_teacher_date_time            (teacher_id,scheduled_on,start_time,end_time)
+#  lesson_sessions_teacher_time_exclusion        (teacher_id, tsrange((scheduled_on + start_time), (scheduled_on + end_time), '[)'::text)) USING gist
 #
 # Foreign Keys
 #
 #  fk_rails_...  (enrollment_id => enrollments.id)
 #  fk_rails_...  (rescheduled_from_id => lesson_sessions.id)
-#  fk_rails_...  (teacher_id => people.id)
+#  fk_rails_...  (teacher_id => users.id)
 #
 class LessonSession < ApplicationRecord
   include ScheduleTimeRange
 
   belongs_to :enrollment
-  belongs_to :teacher, class_name: "Person"
+  belongs_to :teacher, class_name: "User"
   belongs_to :rescheduled_from, class_name: "LessonSession", optional: true
 
   validates :scheduled_on, :start_time, :end_time, :day_label, presence: true

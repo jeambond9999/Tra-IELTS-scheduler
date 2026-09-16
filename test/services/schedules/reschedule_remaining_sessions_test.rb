@@ -4,8 +4,8 @@ require "test_helper"
 
 class Schedules::RescheduleRemainingSessionsTest < ActiveSupport::TestCase
   setup do
-    @teacher = people(:giang_teacher)
-    @sales = people(:sales_nhien)
+    @teacher = users(:giang_teacher)
+    @sales = users(:sales_nhien)
     @student = Student.create!(name: "Nguyễn Phạm Thanh Vân", code: "TRA83")
     @enrollment = Enrollment.create!(
       student: @student,

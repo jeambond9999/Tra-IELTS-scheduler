@@ -6,6 +6,8 @@ class TeacherAvailabilitiesController < InertiaController
 
   def create
     availability = TeacherAvailability.new(availability_params)
+    return unless own_schedule!(availability.teacher_id)
+
     availability.end_time = Schedules::Calendar.end_time(availability_params.fetch(:start_time), availability.duration_minutes)
 
     if availability.save
@@ -17,6 +19,8 @@ class TeacherAvailabilitiesController < InertiaController
 
   def update
     availability = TeacherAvailability.find(params[:id])
+    return unless own_schedule!(availability.teacher_id)
+
     availability.assign_attributes(update_params)
     availability.end_time = Schedules::Calendar.end_time(
       update_params.fetch(:start_time, availability.start_time),
@@ -32,6 +36,8 @@ class TeacherAvailabilitiesController < InertiaController
 
   def batch_create
     teacher_id       = params.require(:teacher_id).to_i
+    return unless own_schedule!(teacher_id)
+
     duration_minutes = params.require(:duration_minutes).to_i
     slots            = params.require(:slots)
 
@@ -62,6 +68,8 @@ class TeacherAvailabilitiesController < InertiaController
 
   def sync_week
     teacher_id       = params.require(:teacher_id).to_i
+    return unless own_schedule!(teacher_id)
+
     source_week_name = params.require(:source_week_name)
     month_key        = params.require(:month_key)
     duration         = params[:duration_minutes].to_i.positive? ? params[:duration_minutes].to_i : 40
@@ -175,13 +183,17 @@ class TeacherAvailabilitiesController < InertiaController
   end
 
   def destroy
-    TeacherAvailability.find(params[:id]).destroy
+    availability = TeacherAvailability.find(params[:id])
+    return unless own_schedule!(availability.teacher_id)
+
+    availability.destroy
     redirect_to_scheduler(notice: "Đã xóa ca rảnh.")
   end
 
   def batch_destroy
     ids = params.require(:ids)
     rel = TeacherAvailability.where(id: ids)
+    rel = rel.where(teacher_id: current_user.id) unless manages_every_schedule?
     if params[:teacher_id].present? && params[:teacher_id].to_s != "all"
       rel = rel.where(teacher_id: params[:teacher_id].to_i)
     end
@@ -193,6 +205,17 @@ class TeacherAvailabilitiesController < InertiaController
   end
 
   private
+
+  def manages_every_schedule?
+    current_user.admin? || current_user.sales?
+  end
+
+  def own_schedule!(teacher_id)
+    return true if manages_every_schedule? || teacher_id.to_i == current_user.id
+
+    redirect_to_scheduler(alert: "Bạn chỉ được chỉnh sửa lịch rảnh của chính mình.")
+    false
+  end
 
   def availability_params
     params.require(:teacher_availability).permit(:teacher_id, :available_on, :start_time, :duration_minutes)

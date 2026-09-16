@@ -112,13 +112,13 @@ ALTER SEQUENCE public.enrollments_id_seq OWNED BY public.enrollments.id;
 
 CREATE TABLE public.items (
     id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    description text,
-    discarded_at timestamp(6) without time zone,
     name character varying NOT NULL,
-    phone_number character varying,
+    description text,
+    user_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    user_id integer NOT NULL
+    phone_number character varying,
+    discarded_at timestamp(6) without time zone
 );
 
 
@@ -182,42 +182,6 @@ CREATE SEQUENCE public.lesson_sessions_id_seq
 --
 
 ALTER SEQUENCE public.lesson_sessions_id_seq OWNED BY public.lesson_sessions.id;
-
-
---
--- Name: people; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.people (
-    id bigint NOT NULL,
-    name character varying NOT NULL,
-    role character varying NOT NULL,
-    active boolean DEFAULT true NOT NULL,
-    weekly_availability_target integer,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    CONSTRAINT people_role_check CHECK (((role)::text = ANY (ARRAY[('teacher'::character varying)::text, ('sales'::character varying)::text, ('cs'::character varying)::text]))),
-    CONSTRAINT people_weekly_availability_target_positive CHECK (((weekly_availability_target IS NULL) OR (weekly_availability_target > 0)))
-);
-
-
---
--- Name: people_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.people_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: people_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.people_id_seq OWNED BY public.people.id;
 
 
 --
@@ -310,19 +274,21 @@ ALTER SEQUENCE public.teacher_availabilities_id_seq OWNED BY public.teacher_avai
 
 CREATE TABLE public.users (
     id bigint NOT NULL,
-    avatar_url character varying,
-    created_at timestamp(6) without time zone NOT NULL,
     email character varying DEFAULT ''::character varying NOT NULL,
     encrypted_password character varying DEFAULT ''::character varying NOT NULL,
-    name character varying,
-    provider character varying,
-    remember_created_at timestamp(6) without time zone,
-    reset_password_sent_at timestamp(6) without time zone,
     reset_password_token character varying,
+    reset_password_sent_at timestamp(6) without time zone,
+    remember_created_at timestamp(6) without time zone,
+    provider character varying,
     uid character varying,
+    name character varying,
+    avatar_url character varying,
+    created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     roles character varying DEFAULT 'teacher'::character varying NOT NULL,
-    person_id bigint
+    active boolean DEFAULT true NOT NULL,
+    weekly_availability_target integer,
+    CONSTRAINT users_weekly_availability_target_positive CHECK (((weekly_availability_target IS NULL) OR (weekly_availability_target > 0)))
 );
 
 
@@ -351,13 +317,13 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 CREATE TABLE public.versions (
     id bigint NOT NULL,
+    whodunnit character varying,
     created_at timestamp(6) without time zone,
-    event character varying NOT NULL,
     item_id bigint NOT NULL,
     item_type character varying NOT NULL,
+    event character varying NOT NULL,
     object text,
-    object_changes text,
-    whodunnit character varying
+    object_changes text
 );
 
 
@@ -399,13 +365,6 @@ ALTER TABLE ONLY public.items ALTER COLUMN id SET DEFAULT nextval('public.items_
 --
 
 ALTER TABLE ONLY public.lesson_sessions ALTER COLUMN id SET DEFAULT nextval('public.lesson_sessions_id_seq'::regclass);
-
-
---
--- Name: people id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.people ALTER COLUMN id SET DEFAULT nextval('public.people_id_seq'::regclass);
 
 
 --
@@ -474,14 +433,6 @@ ALTER TABLE ONLY public.lesson_sessions
 
 ALTER TABLE ONLY public.lesson_sessions
     ADD CONSTRAINT lesson_sessions_teacher_time_exclusion EXCLUDE USING gist (teacher_id WITH =, tsrange((scheduled_on + start_time), (scheduled_on + end_time), '[)'::text) WITH &&);
-
-
---
--- Name: people people_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.people
-    ADD CONSTRAINT people_pkey PRIMARY KEY (id);
 
 
 --
@@ -603,13 +554,6 @@ CREATE INDEX index_lessons_on_teacher_date_time ON public.lesson_sessions USING 
 
 
 --
--- Name: index_people_on_role_and_name; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_people_on_role_and_name ON public.people USING btree (role, name);
-
-
---
 -- Name: index_students_on_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -628,13 +572,6 @@ CREATE INDEX index_teacher_availabilities_on_teacher_id ON public.teacher_availa
 --
 
 CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
-
-
---
--- Name: index_users_on_person_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_users_on_person_id ON public.users USING btree (person_id);
 
 
 --
@@ -678,7 +615,7 @@ ALTER TABLE ONLY public.lesson_sessions
 --
 
 ALTER TABLE ONLY public.teacher_availabilities
-    ADD CONSTRAINT fk_rails_27c6539657 FOREIGN KEY (teacher_id) REFERENCES public.people(id);
+    ADD CONSTRAINT fk_rails_27c6539657 FOREIGN KEY (teacher_id) REFERENCES public.users(id);
 
 
 --
@@ -694,7 +631,7 @@ ALTER TABLE ONLY public.lesson_sessions
 --
 
 ALTER TABLE ONLY public.lesson_sessions
-    ADD CONSTRAINT fk_rails_98366d7484 FOREIGN KEY (teacher_id) REFERENCES public.people(id);
+    ADD CONSTRAINT fk_rails_98366d7484 FOREIGN KEY (teacher_id) REFERENCES public.users(id);
 
 
 --
@@ -710,7 +647,7 @@ ALTER TABLE ONLY public.items
 --
 
 ALTER TABLE ONLY public.enrollments
-    ADD CONSTRAINT fk_rails_d7ecead031 FOREIGN KEY (sales_id) REFERENCES public.people(id);
+    ADD CONSTRAINT fk_rails_d7ecead031 FOREIGN KEY (sales_id) REFERENCES public.users(id);
 
 
 --
@@ -718,7 +655,7 @@ ALTER TABLE ONLY public.enrollments
 --
 
 ALTER TABLE ONLY public.enrollments
-    ADD CONSTRAINT fk_rails_e62a7e8f83 FOREIGN KEY (teacher_id) REFERENCES public.people(id);
+    ADD CONSTRAINT fk_rails_e62a7e8f83 FOREIGN KEY (teacher_id) REFERENCES public.users(id);
 
 
 --
@@ -730,20 +667,13 @@ ALTER TABLE ONLY public.enrollments
 
 
 --
--- Name: users fk_rails_fa67535741; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT fk_rails_fa67535741 FOREIGN KEY (person_id) REFERENCES public.people(id) ON DELETE SET NULL;
-
-
---
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260916180000'),
 ('20260914223000'),
 ('20260906114500'),
 ('20260906104000'),

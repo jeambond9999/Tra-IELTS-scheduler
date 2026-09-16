@@ -9,8 +9,8 @@ class EnrollmentsControllerTest < ActionDispatch::IntegrationTest
     assert_difference([ "Student.count", "Enrollment.count", "LessonSession.count" ], 1) do
       post enrollments_url, params: {
         enrollment: {
-          teacher_id: people(:giang_teacher).id,
-          sales_id: people(:sales_nhien).id,
+          teacher_id: users(:giang_teacher).id,
+          sales_id: users(:sales_nhien).id,
           student_name: "Lê Quốc Bảo",
           student_code: "HV200",
           course_name: "IELTS Writing Intensive",
@@ -29,8 +29,8 @@ class EnrollmentsControllerTest < ActionDispatch::IntegrationTest
           ]
         },
         role: "sales",
-        person_id: people(:sales_nhien).id,
-        teacher_id: people(:giang_teacher).id,
+        person_id: users(:sales_nhien).id,
+        teacher_id: users(:giang_teacher).id,
         month_key: "2026-08",
         week_name: "Tuần 2"
       }
@@ -38,15 +38,15 @@ class EnrollmentsControllerTest < ActionDispatch::IntegrationTest
 
     enrollment = Enrollment.joins(:student).find_by!(students: { code: "HV200" })
     assert_equal "https://meet.google.com/new", enrollment.meet_link
-    assert_redirected_to root_path(role: "sales", person_id: people(:sales_nhien).id, teacher_id: people(:giang_teacher).id, month_key: "2026-08", week_name: "Tuần 2")
+    assert_redirected_to root_path(role: "sales", person_id: users(:sales_nhien).id, teacher_id: users(:giang_teacher).id, month_key: "2026-08", week_name: "Tuần 2")
   end
 
   test "sales booking stores a submitted meet link" do
     assert_difference([ "Student.count", "Enrollment.count", "LessonSession.count" ], 1) do
       post enrollments_url, params: {
         enrollment: {
-          teacher_id: people(:giang_teacher).id,
-          sales_id: people(:sales_nhien).id,
+          teacher_id: users(:giang_teacher).id,
+          sales_id: users(:sales_nhien).id,
           student_name: "Trần Minh Khang",
           student_code: "HV201",
           course_name: "IELTS Speaking",
@@ -66,8 +66,8 @@ class EnrollmentsControllerTest < ActionDispatch::IntegrationTest
           ]
         },
         role: "sales",
-        person_id: people(:sales_nhien).id,
-        teacher_id: people(:giang_teacher).id,
+        person_id: users(:sales_nhien).id,
+        teacher_id: users(:giang_teacher).id,
         month_key: "2026-08",
         week_name: "Tuần 2"
       }
@@ -78,13 +78,13 @@ class EnrollmentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "allows sales to create an enrollment" do
-    sign_in users(:three)
+    sign_in users(:sales_nhien)
 
     assert_difference([ "Student.count", "Enrollment.count", "LessonSession.count" ], 1) do
       post enrollments_url, params: {
         enrollment: {
-          teacher_id: people(:giang_teacher).id,
-          sales_id: people(:sales_nhien).id,
+          teacher_id: users(:giang_teacher).id,
+          sales_id: users(:sales_nhien).id,
           student_name: "Phạm Gia Huy",
           student_code: "HV202",
           course_name: "IELTS Reading",
@@ -100,13 +100,13 @@ class EnrollmentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "rejects teacher from creating an enrollment" do
-    sign_in users(:two)
+    sign_in users(:ha_teacher)
 
     assert_no_difference([ "Student.count", "Enrollment.count", "LessonSession.count" ]) do
       post enrollments_url, params: {
         enrollment: {
-          teacher_id: people(:giang_teacher).id,
-          sales_id: people(:sales_nhien).id,
+          teacher_id: users(:giang_teacher).id,
+          sales_id: users(:sales_nhien).id,
           student_name: "Không Được Phép",
           student_code: "HV203",
           course_name: "IELTS Reading",
@@ -125,7 +125,7 @@ class EnrollmentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "rejects cs from destroying an enrollment" do
-    sign_in users(:four)
+    sign_in users(:cs_mai)
     enrollment = enrollments(:writing_minh)
 
     assert_no_difference("Enrollment.count") do
@@ -136,7 +136,7 @@ class EnrollmentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "allows cs to update an enrollment" do
-    sign_in users(:four)
+    sign_in users(:cs_mai)
     enrollment = enrollments(:writing_minh)
 
     patch enrollment_url(enrollment), params: { enrollment: { tuition_note: "CS updated note" } }

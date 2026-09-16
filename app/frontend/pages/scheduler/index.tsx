@@ -498,7 +498,7 @@ export default function SchedulerIndex(props: SchedulerProps) {
     router.patch(
       teacherPath(Number(teacherId)),
       {
-        person: { weekly_availability_target: weeklyTargetValue },
+        teacher: { weekly_availability_target: weeklyTargetValue },
         ...mutationRedirectParams,
       },
       {

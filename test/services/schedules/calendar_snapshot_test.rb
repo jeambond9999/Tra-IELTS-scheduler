@@ -4,12 +4,12 @@ require "test_helper"
 
 class Schedules::CalendarSnapshotTest < ActiveSupport::TestCase
   test "returns visible teacher schedule and summary" do
-    teacher = Person.create!(name: "Snapshot Teacher #{SecureRandom.hex(4)}", role: "teacher", weekly_availability_target: 24)
+    teacher = create_teacher("Snapshot Teacher", weekly_availability_target: 24)
     student = Student.create!(name: "Snapshot Student", code: "SNAP#{SecureRandom.hex(4)}")
     enrollment = Enrollment.create!(
       student: student,
       teacher: teacher,
-      sales: people(:sales_nhien),
+      sales: users(:sales_nhien),
       course_name: "Snapshot Course",
       meet_link: "https://meet.google.com/snapshot",
       start_date: "2026-08-12",
@@ -57,7 +57,7 @@ class Schedules::CalendarSnapshotTest < ActiveSupport::TestCase
     snapshot = Schedules::CalendarSnapshot.new(
       month_key: "2026-08",
       week_name: "Tuần 3",
-      selected_teacher_id: people(:ha_teacher).id
+      selected_teacher_id: users(:ha_teacher).id
     ).to_h
 
     student = snapshot.fetch(:student_tracking).first
@@ -70,7 +70,7 @@ class Schedules::CalendarSnapshotTest < ActiveSupport::TestCase
   end
 
   test "reconciles monthly total ca with weekly kpi sum even when month has trailing days" do
-    teacher = Person.create!(name: "Reconcile Teacher #{SecureRandom.hex(4)}", role: "teacher", weekly_availability_target: 28)
+    teacher = create_teacher("Reconcile Teacher", weekly_availability_target: 28)
     # 2026-08-31 is Monday, day 31 of August, which falls past the 5th Sunday (2026-08-30)
     TeacherAvailability.create!(
       teacher: teacher,
@@ -102,5 +102,18 @@ class Schedules::CalendarSnapshotTest < ActiveSupport::TestCase
 
     week_5_kpi = weekly_kpis.find { |w| w.fetch(:week) == "Tuần 5" }
     assert_equal 1.0, week_5_kpi.fetch(:count)
+  end
+
+  private
+
+  def create_teacher(name, weekly_availability_target:)
+    suffix = SecureRandom.hex(4)
+    User.create!(
+      name: "#{name} #{suffix}",
+      email: "teacher-#{suffix}@example.com",
+      password: "password123",
+      roles: "teacher",
+      weekly_availability_target: weekly_availability_target
+    )
   end
 end

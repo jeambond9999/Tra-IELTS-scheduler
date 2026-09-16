@@ -162,18 +162,6 @@ function firstPersonId(role: PersonRole, people: Props['people'], currentUser?: 
     currentUser?.isPureAdmin ??
     (!currentUser || (currentUser.rolesList?.length === 1 && currentUser.rolesList[0] === 'admin'))
   )
-  if (currentUser && !isPureAdmin) {
-    const rolePeople = peopleForRole(role, people)
-    if (currentUser.personId) {
-      const matchById = rolePeople.find((p) => p.id === currentUser.personId)
-      if (matchById) return matchById.id
-    }
-    const currentName = (currentUser.personName || currentUser.name || '').trim().toLowerCase()
-    if (currentName) {
-      const matchByName = rolePeople.find((p) => p.name.trim().toLowerCase() === currentName)
-      if (matchByName) return matchByName.id
-    }
-    if (currentUser.personId) return currentUser.personId
-  }
+  if (currentUser && !isPureAdmin) return currentUser.id
   return peopleForRole(role, people)[0]?.id ?? 0
 }

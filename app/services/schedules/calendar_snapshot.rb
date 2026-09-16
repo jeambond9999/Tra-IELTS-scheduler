@@ -87,7 +87,7 @@ module Schedules
 
     def selected_teacher
       return nil if all_teachers?
-      @selected_teacher ||= Person.teachers.find_by(id: selected_teacher_id) || Person.teachers.first || Person.first
+      @selected_teacher ||= User.teachers.find_by(id: selected_teacher_id)
     end
 
     def week_days
@@ -168,7 +168,7 @@ module Schedules
       booked_ca = ca_from_lessons(month_lessons)
       completed_ca = ca_from_lessons(month_lessons.select { |lesson| CalendarSnapshot.lesson_reconciled?(lesson) })
       total_ca = available_ca
-      commitment = all_teachers? ? (Person.active.teachers.count * 110) : 110
+      commitment = all_teachers? ? (User.active.teachers.count * 110) : 110
 
       {
         available_ca: available_ca,
@@ -183,7 +183,7 @@ module Schedules
     end
 
     def weekly_kpis
-      active_teachers = Person.active.teachers
+      active_teachers = User.active.teachers
       weeks = Calendar::WEEKS
       weeks.map.with_index do |week, idx|
         dates = Calendar.week_days(month_key: month_key, week_name: week).map { |day| Date.iso8601(day.fetch(:iso_date)) }

@@ -309,8 +309,7 @@ export type UserAccount = {
   avatarUrl?: string
   roles: string
   rolesList: string[]
-  personId?: number | null
-  personName?: string | null
+  active?: boolean
   isAdmin?: boolean
   isPureAdmin?: boolean
 }

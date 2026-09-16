@@ -27,12 +27,13 @@
 #  index_lesson_sessions_on_rescheduled_from_id  (rescheduled_from_id)
 #  index_lesson_sessions_on_teacher_id           (teacher_id)
 #  index_lessons_on_teacher_date_time            (teacher_id,scheduled_on,start_time,end_time)
+#  lesson_sessions_teacher_time_exclusion        (teacher_id, tsrange((scheduled_on + start_time), (scheduled_on + end_time), '[)'::text)) USING gist
 #
 # Foreign Keys
 #
 #  fk_rails_...  (enrollment_id => enrollments.id)
 #  fk_rails_...  (rescheduled_from_id => lesson_sessions.id)
-#  fk_rails_...  (teacher_id => people.id)
+#  fk_rails_...  (teacher_id => users.id)
 #
 require "test_helper"
 
@@ -48,7 +49,7 @@ class LessonSessionTest < ActiveSupport::TestCase
   test "rejects overlapping sessions for the same teacher and date" do
     session = LessonSession.new(
       enrollment: enrollments(:writing_minh),
-      teacher: people(:ha_teacher),
+      teacher: users(:ha_teacher),
       scheduled_on: lesson_sessions(:minh_day_one).scheduled_on,
       start_time: "08:20",
       end_time: "09:00",
@@ -63,7 +64,7 @@ class LessonSessionTest < ActiveSupport::TestCase
   test "allows same time for a different teacher" do
     session = LessonSession.new(
       enrollment: enrollments(:speaking_lan),
-      teacher: people(:giang_teacher),
+      teacher: users(:giang_teacher),
       scheduled_on: lesson_sessions(:minh_day_one).scheduled_on,
       start_time: lesson_sessions(:minh_day_one).start_time,
       end_time: lesson_sessions(:minh_day_one).end_time,
@@ -105,7 +106,7 @@ class LessonSessionTest < ActiveSupport::TestCase
 
     session = LessonSession.new(
       enrollment: enrollments(:writing_minh),
-      teacher: people(:ha_teacher),
+      teacher: users(:ha_teacher),
       scheduled_on: lesson_sessions(:minh_day_one).scheduled_on,
       start_time: "08:20",
       end_time: "09:00",
@@ -124,7 +125,7 @@ class LessonSessionTest < ActiveSupport::TestCase
 
     session = LessonSession.new(
       enrollment: enrollments(:writing_minh),
-      teacher: people(:ha_teacher),
+      teacher: users(:ha_teacher),
       scheduled_on: availability.available_on,
       start_time: "07:20",
       end_time: "08:00",
@@ -143,9 +144,9 @@ class LessonSessionTest < ActiveSupport::TestCase
   end
 
   def create_availability_for_conflict!(available_on:)
-    TeacherAvailability.where(teacher: people(:ha_teacher), available_on: available_on).delete_all
+    TeacherAvailability.where(teacher: users(:ha_teacher), available_on: available_on).delete_all
     TeacherAvailability.create!(
-      teacher: people(:ha_teacher),
+      teacher: users(:ha_teacher),
       available_on: available_on,
       start_time: "07:00",
       end_time: "07:40",
@@ -156,7 +157,7 @@ class LessonSessionTest < ActiveSupport::TestCase
   def lesson_attributes(scheduled_on: lesson_sessions(:minh_day_one).scheduled_on, start_time:, end_time:)
     {
       enrollment_id: enrollments(:writing_minh).id,
-      teacher_id: people(:ha_teacher).id,
+      teacher_id: users(:ha_teacher).id,
       scheduled_on: scheduled_on,
       start_time: start_time,
       end_time: end_time,

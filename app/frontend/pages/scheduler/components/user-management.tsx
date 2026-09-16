@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react'
-import { Check, Edit, KeyRound, Lock, Plus, ShieldCheck, Trash2, UserCheck, UserPlus, Users } from 'lucide-react'
+import { Check, Edit, KeyRound, Lock, Plus, ShieldCheck, Trash2, UserPlus, Users } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
@@ -14,24 +14,12 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import type { Person, UserAccount } from '../types'
+import type { UserAccount } from '../types'
 
 type Props = {
   users?: UserAccount[]
   currentUser?: UserAccount | null
-  people: {
-    teachers: Person[]
-    sales: Person[]
-    cs: Person[]
-  }
 }
 
 const AVAILABLE_ROLES = [
@@ -41,7 +29,7 @@ const AVAILABLE_ROLES = [
   { key: 'admin', label: '👑 Admin', desc: 'Toàn quyền quản trị, bảng lương và hệ thống' },
 ]
 
-export function UserManagement({ users = [], currentUser, people }: Props) {
+export function UserManagement({ users = [], currentUser }: Props) {
   const [createOpen, setCreateOpen] = useState(false)
   const [editUser, setEditUser] = useState<UserAccount | null>(null)
   const [passwordUser, setPasswordUser] = useState<UserAccount | null>(null)
@@ -52,23 +40,16 @@ export function UserManagement({ users = [], currentUser, people }: Props) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('TraIELTS@123')
   const [selectedRoles, setSelectedRoles] = useState<string[]>(['teacher'])
-  const [personId, setPersonId] = useState<string>('none')
   const [loading, setLoading] = useState(false)
 
   // Form states for Edit
   const [editName, setEditName] = useState('')
   const [editEmail, setEditEmail] = useState('')
   const [editRoles, setEditRoles] = useState<string[]>([])
-  const [editPersonId, setEditPersonId] = useState<string>('none')
+  const [editActive, setEditActive] = useState(true)
 
   // Form state for Password
   const [newPassword, setNewPassword] = useState('')
-
-  const allPeople = [
-    ...people.teachers.map((p) => ({ ...p, roleLabel: 'Giáo viên' })),
-    ...people.sales.map((p) => ({ ...p, roleLabel: 'Sales' })),
-    ...people.cs.map((p) => ({ ...p, roleLabel: 'CSKH' })),
-  ]
 
   const handleRoleToggle = (roleKey: string, current: string[], setter: (v: string[]) => void) => {
     if (current.includes(roleKey)) {
@@ -87,12 +68,15 @@ export function UserManagement({ users = [], currentUser, people }: Props) {
     setEmail('')
     setPassword('TraIELTS@123')
     setSelectedRoles(['teacher'])
-    setPersonId('none')
     setCreateOpen(true)
   }
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!name.trim()) {
+      toast.error('Vui lòng nhập Họ và tên — tên này sẽ hiển thị trên lịch!')
+      return
+    }
     if (!email.trim()) {
       toast.error('Vui lòng nhập Email!')
       return
@@ -114,7 +98,6 @@ export function UserManagement({ users = [], currentUser, people }: Props) {
         email: email.trim().toLowerCase(),
         password: password.trim(),
         roles: selectedRoles,
-        person_id: personId === 'none' ? null : Number(personId),
       },
       {
         onSuccess: () => {
@@ -134,7 +117,7 @@ export function UserManagement({ users = [], currentUser, people }: Props) {
     setEditName(user.name || '')
     setEditEmail(user.email || '')
     setEditRoles(user.rolesList || [user.roles] || ['teacher'])
-    setEditPersonId(user.personId ? String(user.personId) : 'none')
+    setEditActive(user.active !== false)
   }
 
   const handleUpdate = (e: React.FormEvent) => {
@@ -148,7 +131,7 @@ export function UserManagement({ users = [], currentUser, people }: Props) {
         name: editName.trim(),
         email: editEmail.trim().toLowerCase(),
         roles: editRoles,
-        person_id: editPersonId === 'none' ? null : Number(editPersonId),
+        active: editActive,
       },
       {
         onSuccess: () => {
@@ -297,7 +280,7 @@ export function UserManagement({ users = [], currentUser, people }: Props) {
                 <th className="py-3.5 px-4">Tài khoản / Email</th>
                 <th className="py-3.5 px-4">Họ và tên</th>
                 <th className="py-3.5 px-4">Phân quyền vai trò</th>
-                <th className="py-3.5 px-4">Nhân sự liên kết</th>
+                <th className="py-3.5 px-4">Trạng thái</th>
                 <th className="py-3.5 px-4 text-right">Thao tác</th>
               </tr>
             </thead>
@@ -334,13 +317,14 @@ export function UserManagement({ users = [], currentUser, people }: Props) {
                     </td>
 
                     <td className="py-3 px-4">
-                      {u.personName ? (
-                        <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-100 text-slate-800 font-bold text-xs border border-slate-200/80">
-                          <UserCheck className="size-3.5 text-emerald-600" />
-                          {u.personName}
-                        </div>
+                      {u.active === false ? (
+                        <Badge variant="outline" className="text-[11px] font-bold text-slate-500 border-slate-300">
+                          Ngừng hoạt động
+                        </Badge>
                       ) : (
-                        <span className="text-slate-400 italic text-[11px]">Chưa gán</span>
+                        <Badge className="bg-emerald-50 hover:bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold">
+                          Đang hoạt động
+                        </Badge>
                       )}
                     </td>
 
@@ -409,14 +393,16 @@ export function UserManagement({ users = [], currentUser, people }: Props) {
                 Thêm tài khoản nhân sự mới
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                Điền thông tin tài khoản và cấp quyền truy cập tương ứng cho nhân sự.
+                Tài khoản này chính là nhân sự trên lịch: tên hiển thị trên lịch dạy, vai trò quyết định họ thấy gì.
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-3 py-1">
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-slate-700">Họ và tên</Label>
+                <Label htmlFor="create-user-name" className="text-xs font-bold text-slate-700">Họ và tên *</Label>
                 <Input
+                  id="create-user-name"
+                  required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ví dụ: Nguyễn Anh Khoa"
@@ -425,8 +411,9 @@ export function UserManagement({ users = [], currentUser, people }: Props) {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-slate-700">Email đăng nhập *</Label>
+                <Label htmlFor="create-user-email" className="text-xs font-bold text-slate-700">Gmail đăng nhập *</Label>
                 <Input
+                  id="create-user-email"
                   type="email"
                   required
                   value={email}
@@ -434,6 +421,9 @@ export function UserManagement({ users = [], currentUser, people }: Props) {
                   placeholder="ví dụ: nguyenanhkhoa305@gmail.com"
                   className="h-9 rounded-xl text-xs"
                 />
+                <p className="text-[11px] text-slate-400">
+                  Nhân sự bấm "Đăng nhập bằng Google" với đúng Gmail này là vào được.
+                </p>
               </div>
 
               <div className="space-y-1.5">
@@ -478,30 +468,6 @@ export function UserManagement({ users = [], currentUser, people }: Props) {
                 </div>
               </div>
 
-              {/* Linked Person */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-slate-700">
-                  Gắn với Nhân sự trong danh mục (Tùy chọn)
-                </Label>
-                <Select value={personId} onValueChange={setPersonId}>
-                  <SelectTrigger className="h-9 rounded-xl text-xs">
-                    <SelectValue placeholder="Chọn nhân sự liên kết..." />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-56 z-50">
-                    <SelectItem value="none" className="text-xs text-slate-400">
-                      — Không liên kết —
-                    </SelectItem>
-                    {allPeople.map((p) => (
-                      <SelectItem key={`${p.role}-${p.id}`} value={String(p.id)} className="text-xs font-bold">
-                        {p.name} ({p.roleLabel})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-[11px] text-slate-400">
-                  Nhân sự liên kết: Giáo viên, Sales hoặc CS khi đăng nhập sẽ tự động khóa vào đúng tên nhân sự này để chỉ xem dữ liệu thuộc quyền phụ trách của mình.
-                </p>
-              </div>
             </div>
 
             <DialogFooter>
@@ -534,7 +500,7 @@ export function UserManagement({ users = [], currentUser, people }: Props) {
                 Chỉnh sửa tài khoản: {editUser?.email}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                Cập nhật họ tên, phân quyền vai trò và nhân sự liên kết.
+                Cập nhật họ tên, Gmail, phân quyền vai trò và trạng thái hoạt động.
               </DialogDescription>
             </DialogHeader>
 
@@ -590,27 +556,39 @@ export function UserManagement({ users = [], currentUser, people }: Props) {
                 </div>
               </div>
 
-              {/* Linked Person */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-slate-700">Nhân sự liên kết</Label>
-                <Select value={editPersonId} onValueChange={setEditPersonId}>
-                  <SelectTrigger className="h-9 rounded-xl text-xs">
-                    <SelectValue placeholder="Chọn nhân sự..." />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-56 z-50">
-                    <SelectItem value="none" className="text-xs text-slate-400">
-                      — Không liên kết —
-                    </SelectItem>
-                    {allPeople.map((p) => (
-                      <SelectItem key={`${p.role}-${p.id}`} value={String(p.id)} className="text-xs font-bold">
-                        {p.name} ({p.roleLabel})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-[11px] text-slate-400">
-                  Nhân sự liên kết: Giáo viên, Sales hoặc CS khi đăng nhập sẽ tự động khóa vào đúng tên nhân sự này để chỉ xem dữ liệu thuộc quyền phụ trách của mình.
-                </p>
+                <Label className="text-xs font-bold text-slate-700">Trạng thái</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: true, label: 'Đang hoạt động', desc: 'Đăng nhập được, hiện trên lịch' },
+                    { value: false, label: 'Ngừng hoạt động', desc: 'Không đăng nhập được, ẩn khỏi lịch, giữ nguyên lịch sử' },
+                  ].map((option) => {
+                    const isChecked = editActive === option.value
+                    const isSelfDeactivation = !option.value && editUser?.id === currentUser?.id
+                    return (
+                      <button
+                        key={String(option.value)}
+                        type="button"
+                        disabled={isSelfDeactivation}
+                        onClick={() => setEditActive(option.value)}
+                        className={cn(
+                          'flex items-center justify-between p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer select-none disabled:cursor-not-allowed disabled:opacity-50',
+                          isChecked
+                            ? 'bg-emerald-50/80 border-emerald-500 text-emerald-950 font-bold shadow-2xs'
+                            : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/80 text-slate-600 font-medium'
+                        )}
+                      >
+                        <div>
+                          <div>{option.label}</div>
+                          <div className="text-[10px] text-slate-400 font-normal leading-tight mt-0.5">
+                            {option.desc}
+                          </div>
+                        </div>
+                        {isChecked && <Check className="size-4 text-emerald-700 shrink-0 ml-1" />}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             </div>
 
@@ -695,7 +673,7 @@ export function UserManagement({ users = [], currentUser, people }: Props) {
               Xóa tài khoản
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-600">
-              Bạn có chắc chắn muốn xóa tài khoản <strong>{deleteUser?.email}</strong>? Nhân sự này sẽ không thể đăng nhập vào hệ thống nữa.
+              Bạn có chắc chắn muốn xóa tài khoản <strong>{deleteUser?.email}</strong>? Nhân sự này sẽ không thể đăng nhập vào hệ thống nữa. Tài khoản đã có khóa học hoặc buổi dạy sẽ không xóa được — hãy chuyển sang "Ngừng hoạt động" trong mục Sửa.
             </DialogDescription>
           </DialogHeader>
 

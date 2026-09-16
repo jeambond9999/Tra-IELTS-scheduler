@@ -16,19 +16,20 @@
 #
 # Indexes
 #
-#  index_availability_on_teacher_date_time     (teacher_id,available_on,start_time,end_time)
-#  index_teacher_availabilities_on_teacher_id  (teacher_id)
+#  index_availability_on_teacher_date_time        (teacher_id,available_on,start_time,end_time)
+#  index_teacher_availabilities_on_teacher_id     (teacher_id)
+#  teacher_availabilities_teacher_time_exclusion  (teacher_id, tsrange((available_on + start_time), (available_on + end_time), '[)'::text)) USING gist
 #
 # Foreign Keys
 #
-#  fk_rails_...  (teacher_id => people.id)
+#  fk_rails_...  (teacher_id => users.id)
 #
 require "test_helper"
 
 class TeacherAvailabilityTest < ActiveSupport::TestCase
   test "requires teacher person to have teacher role" do
     availability = TeacherAvailability.new(
-      teacher: people(:sales_nhien),
+      teacher: users(:sales_nhien),
       available_on: "2026-08-18",
       start_time: "07:00",
       end_time: "07:40",
@@ -43,7 +44,7 @@ class TeacherAvailabilityTest < ActiveSupport::TestCase
     existing = create_existing_availability!(available_on: Date.new(2026, 8, 18))
 
     availability = TeacherAvailability.new(
-      teacher: people(:ha_teacher),
+      teacher: users(:ha_teacher),
       available_on: existing.available_on,
       start_time: "07:20",
       end_time: "08:00",
@@ -56,7 +57,7 @@ class TeacherAvailabilityTest < ActiveSupport::TestCase
 
   test "allows availability over an existing lesson" do
     availability = TeacherAvailability.new(
-      teacher: people(:ha_teacher),
+      teacher: users(:ha_teacher),
       available_on: lesson_sessions(:minh_day_one).scheduled_on,
       start_time: lesson_sessions(:minh_day_one).start_time,
       end_time: lesson_sessions(:minh_day_one).end_time,
@@ -100,9 +101,9 @@ class TeacherAvailabilityTest < ActiveSupport::TestCase
   end
 
   def create_existing_availability!(available_on:)
-    TeacherAvailability.where(teacher: people(:ha_teacher), available_on: available_on).delete_all
+    TeacherAvailability.where(teacher: users(:ha_teacher), available_on: available_on).delete_all
     TeacherAvailability.create!(
-      teacher: people(:ha_teacher),
+      teacher: users(:ha_teacher),
       available_on: available_on,
       start_time: "07:00",
       end_time: "07:40",
@@ -112,7 +113,7 @@ class TeacherAvailabilityTest < ActiveSupport::TestCase
 
   def availability_attributes(available_on:, start_time:, end_time:)
     {
-      teacher_id: people(:ha_teacher).id,
+      teacher_id: users(:ha_teacher).id,
       available_on: available_on,
       start_time: start_time,
       end_time: end_time,

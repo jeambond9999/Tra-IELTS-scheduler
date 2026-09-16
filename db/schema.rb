@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_14_223000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_180000) do
   create_table "enrollments", force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.string "course_name", null: false
@@ -73,18 +73,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_223000) do
     t.check_constraint "duration_minutes > 0", name: "lesson_sessions_duration_check"
   end
 
-  create_table "people", force: :cascade do |t|
-    t.boolean "active", default: true, null: false
-    t.datetime "created_at", null: false
-    t.string "name", null: false
-    t.string "role", null: false
-    t.datetime "updated_at", null: false
-    t.integer "weekly_availability_target"
-    t.index ["role", "name"], name: "index_people_on_role_and_name", unique: true
-    t.check_constraint "role IN ('teacher', 'sales', 'cs')", name: "people_role_check"
-    t.check_constraint "weekly_availability_target IS NULL OR weekly_availability_target > 0", name: "people_weekly_availability_target_positive"
-  end
-
   create_table "students", force: :cascade do |t|
     t.string "actual_score"
     t.string "aim"
@@ -114,12 +102,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_223000) do
   end
 
   create_table "users", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
     t.string "avatar_url"
     t.datetime "created_at", null: false
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "name"
-    t.bigint "person_id"
     t.string "provider"
     t.datetime "remember_created_at"
     t.datetime "reset_password_sent_at"
@@ -127,10 +115,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_223000) do
     t.string "roles", default: "teacher", null: false
     t.string "uid"
     t.datetime "updated_at", null: false
+    t.integer "weekly_availability_target"
     t.index ["email"], name: "index_users_on_email", unique: true
-    t.index ["person_id"], name: "index_users_on_person_id"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.check_constraint "weekly_availability_target IS NULL OR weekly_availability_target > 0", name: "users_weekly_availability_target_positive"
   end
 
   create_table "versions", force: :cascade do |t|
@@ -144,13 +133,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_223000) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
-  add_foreign_key "enrollments", "people", column: "sales_id"
-  add_foreign_key "enrollments", "people", column: "teacher_id"
   add_foreign_key "enrollments", "students"
+  add_foreign_key "enrollments", "users", column: "sales_id"
+  add_foreign_key "enrollments", "users", column: "teacher_id"
   add_foreign_key "items", "users"
   add_foreign_key "lesson_sessions", "enrollments"
   add_foreign_key "lesson_sessions", "lesson_sessions", column: "rescheduled_from_id"
-  add_foreign_key "lesson_sessions", "people", column: "teacher_id"
-  add_foreign_key "teacher_availabilities", "people", column: "teacher_id"
-  add_foreign_key "users", "people", on_delete: :nullify
+  add_foreign_key "lesson_sessions", "users", column: "teacher_id"
+  add_foreign_key "teacher_availabilities", "users", column: "teacher_id"
 end

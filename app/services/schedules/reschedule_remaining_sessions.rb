@@ -93,7 +93,7 @@ module Schedules
 
     def target_teacher
       @target_teacher ||= if attributes[:teacher_id].present?
-        Person.teachers.find(attributes[:teacher_id])
+        User.teachers.find(attributes[:teacher_id])
       else
         enrollment.teacher
       end

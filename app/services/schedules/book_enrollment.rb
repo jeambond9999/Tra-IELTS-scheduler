@@ -184,11 +184,11 @@ module Schedules
     end
 
     def teacher
-      @teacher ||= Person.teachers.find(attributes.fetch(:teacher_id))
+      @teacher ||= User.teachers.find(attributes.fetch(:teacher_id))
     end
 
     def sales
-      @sales ||= Person.sales_people.find(attributes.fetch(:sales_id))
+      @sales ||= User.sales_people.find(attributes.fetch(:sales_id))
     end
 
     def student

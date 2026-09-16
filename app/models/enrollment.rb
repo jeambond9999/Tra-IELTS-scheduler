@@ -5,21 +5,26 @@
 # Table name: enrollments
 # Database name: primary
 #
-#  id                 :bigint           not null, primary key
-#  active             :boolean          default(TRUE), not null
-#  course_name        :string           not null
-#  duration_minutes   :integer          not null
-#  frequency_per_week :integer          not null
-#  meet_link          :string           not null
-#  payment_status     :string           default("Đã đóng Full"), not null
-#  start_date         :date             not null
-#  total_sessions     :integer          not null
-#  tuition_note       :text
-#  created_at         :datetime         not null
-#  updated_at         :datetime         not null
-#  sales_id           :bigint           not null
-#  student_id         :bigint           not null
-#  teacher_id         :bigint           not null
+#  id                       :bigint           not null, primary key
+#  active                   :boolean          default(TRUE), not null
+#  course_name              :string           not null
+#  duration_minutes         :integer          not null
+#  frequency_per_week       :integer          not null
+#  meet_link                :string           not null
+#  payment_status           :string           default("Đã đóng Full"), not null
+#  pre_reservation_schedule :text
+#  reservation_note         :text
+#  reserved_from            :date
+#  resume_date              :date
+#  start_date               :date             not null
+#  status                   :string           default("active"), not null
+#  total_sessions           :integer          not null
+#  tuition_note             :text
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  sales_id                 :bigint           not null
+#  student_id               :bigint           not null
+#  teacher_id               :bigint           not null
 #
 # Indexes
 #
@@ -29,16 +34,16 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (sales_id => people.id)
+#  fk_rails_...  (sales_id => users.id)
 #  fk_rails_...  (student_id => students.id)
-#  fk_rails_...  (teacher_id => people.id)
+#  fk_rails_...  (teacher_id => users.id)
 #
 class Enrollment < ApplicationRecord
   GOOGLE_MEET_LAUNCH_URL = "https://meet.google.com/new"
 
   belongs_to :student
-  belongs_to :teacher, class_name: "Person"
-  belongs_to :sales, class_name: "Person"
+  belongs_to :teacher, class_name: "User"
+  belongs_to :sales, class_name: "User"
 
   has_many :lesson_sessions, dependent: :destroy
 

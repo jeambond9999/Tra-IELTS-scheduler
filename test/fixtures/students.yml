@@ -4,10 +4,13 @@
 # Database name: primary
 #
 #  id           :bigint           not null, primary key
+#  actual_score :string
 #  aim          :string
+#  aim_achieved :boolean
 #  baseline     :string
 #  code         :string           not null
-#  exam_date    :date
+#  exam_date    :string
+#  exam_status  :string           default("chưa thi")
 #  name         :string           not null
 #  student_note :text
 #  created_at   :datetime         not null

@@ -128,7 +128,7 @@ export function AdminPortal({
           onViewSchedule={() => setAdminTab('dashboard')}
         />
       ) : adminTab === 'users' ? (
-        <UserManagement users={props.adminUsers} currentUser={currentUser} people={props.people} />
+        <UserManagement users={props.adminUsers} currentUser={currentUser} />
       ) : null}
     </div>
   )

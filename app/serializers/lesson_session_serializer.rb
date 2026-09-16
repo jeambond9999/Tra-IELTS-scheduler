@@ -1,5 +1,40 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: lesson_sessions
+# Database name: primary
+#
+#  id                  :bigint           not null, primary key
+#  cs_form             :string           default(""), not null
+#  cs_status           :string           default(""), not null
+#  day_label           :string           not null
+#  duration_minutes    :integer          not null
+#  end_time            :time             not null
+#  lesson_notes        :text
+#  lesson_status       :string           default(""), not null
+#  scheduled_on        :date             not null
+#  start_time          :time             not null
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  enrollment_id       :bigint           not null
+#  rescheduled_from_id :bigint
+#  teacher_id          :bigint           not null
+#
+# Indexes
+#
+#  index_lesson_sessions_on_enrollment_id        (enrollment_id)
+#  index_lesson_sessions_on_rescheduled_from_id  (rescheduled_from_id)
+#  index_lesson_sessions_on_teacher_id           (teacher_id)
+#  index_lessons_on_teacher_date_time            (teacher_id,scheduled_on,start_time,end_time)
+#  lesson_sessions_teacher_time_exclusion        (teacher_id, tsrange((scheduled_on + start_time), (scheduled_on + end_time), '[)'::text)) USING gist
+#
+# Foreign Keys
+#
+#  fk_rails_...  (enrollment_id => enrollments.id)
+#  fk_rails_...  (rescheduled_from_id => lesson_sessions.id)
+#  fk_rails_...  (teacher_id => users.id)
+#
 class LessonSessionSerializer < BaseSerializer
   object_as :lesson_session, model: "LessonSession"
 

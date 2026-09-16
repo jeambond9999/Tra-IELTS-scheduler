@@ -6,8 +6,8 @@ class Schedules::BookEnrollmentTest < ActiveSupport::TestCase
   test "creates student enrollment and recurring lessons" do
     assert_difference([ "Student.count", "Enrollment.count", "LessonSession.count" ], 1) do
       Schedules::BookEnrollment.call(
-        teacher_id: people(:giang_teacher).id,
-        sales_id: people(:sales_nhien).id,
+        teacher_id: users(:giang_teacher).id,
+        sales_id: users(:sales_nhien).id,
         student_name: "Lê Quốc Bảo",
         student_code: "HV100",
         course_name: "IELTS Writing Intensive",
@@ -62,8 +62,8 @@ class Schedules::BookEnrollmentTest < ActiveSupport::TestCase
 
   test "day one uses the requested start date even when it does not match the recurring day" do
     enrollment = Schedules::BookEnrollment.call(
-      teacher_id: people(:giang_teacher).id,
-      sales_id: people(:sales_nhien).id,
+      teacher_id: users(:giang_teacher).id,
+      sales_id: users(:sales_nhien).id,
       student_name: "Phạm Minh Anh",
       student_code: "HV101",
       course_name: "IELTS Speaking",
@@ -89,8 +89,8 @@ class Schedules::BookEnrollmentTest < ActiveSupport::TestCase
   test "rejects booking conflicts" do
     error = assert_raises(Schedules::BookEnrollment::BookingError) do
       Schedules::BookEnrollment.call(
-        teacher_id: people(:ha_teacher).id,
-        sales_id: people(:sales_nhien).id,
+        teacher_id: users(:ha_teacher).id,
+        sales_id: users(:sales_nhien).id,
         student_name: "Conflict Student",
         student_code: "HV102",
         course_name: "IELTS Writing",
@@ -117,8 +117,8 @@ class Schedules::BookEnrollmentTest < ActiveSupport::TestCase
   test "rejects existing student code with a different name" do
     error = assert_raises(Schedules::BookEnrollment::BookingError) do
       Schedules::BookEnrollment.call(
-        teacher_id: people(:giang_teacher).id,
-        sales_id: people(:sales_nhien).id,
+        teacher_id: users(:giang_teacher).id,
+        sales_id: users(:sales_nhien).id,
         student_name: "Different Name",
         student_code: students(:minh).code,
         course_name: "IELTS Reading",
@@ -143,9 +143,9 @@ class Schedules::BookEnrollmentTest < ActiveSupport::TestCase
   end
 
   test "consumes an open availability before creating its lesson" do
-    TeacherAvailability.where(teacher: people(:ha_teacher), available_on: "2026-08-17", start_time: "07:00").delete_all
+    TeacherAvailability.where(teacher: users(:ha_teacher), available_on: "2026-08-17", start_time: "07:00").delete_all
     availability = TeacherAvailability.create!(
-      teacher: people(:ha_teacher),
+      teacher: users(:ha_teacher),
       available_on: "2026-08-17",
       start_time: "07:00",
       end_time: "07:40",
@@ -157,7 +157,7 @@ class Schedules::BookEnrollmentTest < ActiveSupport::TestCase
       assert_difference("TeacherAvailability.count", -1) do
         enrollment = Schedules::BookEnrollment.call(
           booking_attributes(
-            teacher_id: people(:ha_teacher).id,
+            teacher_id: users(:ha_teacher).id,
             student_code: "HV103",
             start_date: "2026-08-17",
             schedule_patterns: [ { day: "Thứ 2", time: "07:00" } ]
@@ -288,8 +288,8 @@ class Schedules::BookEnrollmentTest < ActiveSupport::TestCase
 
   def booking_attributes(overrides = {})
     {
-      teacher_id: people(:giang_teacher).id,
-      sales_id: people(:sales_nhien).id,
+      teacher_id: users(:giang_teacher).id,
+      sales_id: users(:sales_nhien).id,
       student_name: "Test Student",
       student_code: "HV999",
       course_name: "IELTS Writing",
