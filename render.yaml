@@ -1,0 +1,45 @@
+# Render Blueprint — provisions the web service + database together.
+#
+# How to use:
+#   1. In the Render Dashboard: New -> Blueprint
+#   2. Point it at this repo (jeambond9999/Tra-IELTS-scheduler), branch main
+#   3. Render reads this file and shows a preview of what it will create
+#   4. When prompted, paste in the values for the "sync: false" secrets below
+#   5. Click Deploy
+#
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: traielts-scheduler
+    runtime: docker
+    plan: free
+    healthCheckPath: /up
+    domains:
+      - traielts.com
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: SOLID_QUEUE_IN_PUMA
+        value: "true"
+      # The Dockerfile runs the app behind Thruster (bin/thrust), which listens
+      # externally on port 80 by default (its HTTP_PORT default). Render's own
+      # default routing target is port 10000, so this must be set explicitly
+      # or Render won't be able to reach the container.
+      - key: PORT
+        value: "80"
+      - key: RAILS_MASTER_KEY
+        sync: false # paste the value shared with you out-of-band
+      - key: GOOGLE_CLIENT_ID
+        value: 1027637912583-7v9mqh057unpk8s2akcq4fmo0bmqgap1.apps.googleusercontent.com
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false # paste the value shared with you out-of-band
+      - key: DATABASE_URL
+        fromDatabase:
+          name: traielts-db
+          property: connectionString
+
+databases:
+  - name: traielts-db
+    databaseName: traielts_production
+    plan: free
