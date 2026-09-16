@@ -10,7 +10,11 @@ if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   # load entirely and leaving the solid_queue/solid_cache/solid_cable
   # tables missing. Force-load them explicitly every boot instead; this
   # only recreates those specific (disposable, job/cache/cable) tables.
-  ./bin/rails db:schema:load:cache db:schema:load:queue db:schema:load:cable
+  # schema:load counts as a "destructive" task, so Rails' protected-
+  # environment guard blocks it in production by default; scope the
+  # override to just this line so db:prepare above (and anything that
+  # would touch the primary database) keeps the guard active.
+  DISABLE_DATABASE_ENVIRONMENT_CHECK=1 ./bin/rails db:schema:load:cache db:schema:load:queue db:schema:load:cable
 fi
 
 exec "${@}"
