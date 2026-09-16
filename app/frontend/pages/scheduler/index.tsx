@@ -1,24 +1,15 @@
 import { Head, router, usePage } from '@inertiajs/react'
 import {
-  AlertTriangle,
   Calculator,
   Calendar,
   CalendarDays,
-  CheckCircle2,
-  Lock,
   LogOut,
   PieChart,
-  RefreshCw,
   RotateCcw,
-  Save,
-  Sparkles,
-  Target,
-  Trash2,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   batchCreateTeacherAvailabilitiesPath,
   batchDestroyTeacherAvailabilitiesPath,
@@ -27,36 +18,16 @@ import {
   teacherPath,
 } from '@/lib/routes'
 import { cn } from '@/lib/utils'
-import { formatMonthKey } from './calendar'
-import { AdminDashboard } from './components/admin-dashboard'
-import { AvailabilityDetailDialog } from './components/availability-detail-dialog'
-import { CalendarToolbar } from './components/calendar-toolbar'
-import { CSReminderBanner } from './components/cs-reminder-banner'
-import { DailyScheduleView } from './components/daily-schedule-view'
-import { EditEnrollmentDialog } from './components/edit-enrollment-dialog'
+import { AdminPortal } from './components/admin-portal'
 import { GlobalStudentSearch } from './components/global-student-search'
-import { KpiPanels } from './components/kpi-panels'
-import { LeadCapacityCalculator, LeadCapacityCalculatorDialog } from './components/lead-capacity-calculator'
-import { LessonDetailDialog } from './components/lesson-detail-dialog'
-import { RankingPolicyTab } from './components/ranking-policy-tab'
-import { RescheduleDialog } from './components/reschedule-dialog'
-import { ReservationDialog } from './components/reservation-dialog'
-import { ResumeReservationDialog } from './components/resume-reservation-dialog'
 import { RolePersonSelector } from './components/role-person-selector'
-import { SalaryCalculator } from './components/salary-calculator'
-import { SalesBookingDialog } from './components/sales-booking-dialog'
-import { SalesOverviewDashboard } from './components/sales-overview-dashboard'
-import { ScheduleGrid } from './components/schedule-grid'
-import { StudentTracking } from './components/student-tracking'
-import { StudentSessionsDialog } from './components/student-sessions-dialog'
-import { TeacherEditScheduleDialog } from './components/teacher-edit-schedule-dialog'
-import { TeacherKpiConfirmDialog } from './components/teacher-kpi-confirm-dialog'
-import { TeacherSyncScheduleDialog } from './components/teacher-sync-schedule-dialog'
-import { TeacherTodoListTab } from './components/teacher-todo-list-tab'
-import { UserManagement } from './components/user-management'
+import { SalesCsPortal } from './components/sales-cs-portal'
+import { SchedulerModals } from './components/scheduler-modals'
+import { TeacherPortal } from './components/teacher-portal'
 import logoImg from '@/images/logo.png'
 import type {
   Enrollment,
+  KpiQuotaState,
   LessonSession,
   PersonRole,
   SchedulerMutationRedirectParams,
@@ -96,13 +67,6 @@ function writeScheduleEditQuota(teacherId: string | number, monthKey: string, da
   } catch (e) {
     console.error('Failed to save schedule edit quota', e)
   }
-}
-
-interface KpiQuotaState {
-  count: number
-  initialTarget?: number
-  updatedTarget?: number
-  lastUpdated?: string
 }
 
 function getKpiQuotaKey(teacherId: string | number, monthKey: string) {
@@ -1070,1208 +1034,225 @@ export default function SchedulerIndex(props: SchedulerProps) {
           </header>
 
           {role === 'teacher' ? (
-            <>
-
-            {/* Calendar Toolbar with Today / This Week buttons and integrated week format */}
-            <CalendarToolbar
+            <TeacherPortal
               role={role}
+              props={props}
+              mutationRedirectParams={mutationRedirectParams}
+              teacherTab={teacherTab}
               monthKey={monthKey}
               weekName={weekName}
-              weeks={props.weeks}
+              weekRange={weekRange}
               teacherId={teacherId}
-              teachers={props.people.teachers}
-              hideWeekControls={['student_tracking', 'dashboard', 'salary', 'ranking'].includes(teacherTab)}
-              onChange={(values) => {
+              personId={personId}
+              defaultDuration={defaultDuration}
+              selectedTeacher={selectedTeacher}
+              onCalendarToolbarChange={(values) => {
                 if (values.monthKey) setMonthKey(values.monthKey)
                 if (values.weekName) setWeekName(values.weekName)
                 if (values.teacherId) setTeacherId(values.teacherId)
                 reload(values)
               }}
+              onMonthChange={(newMonth) => {
+                setMonthKey(newMonth)
+                reload({ monthKey: newMonth })
+              }}
+              weeklyTargetInput={weeklyTargetInput}
+              setWeeklyTargetInput={setWeeklyTargetInput}
+              weeklyTargetInvalid={weeklyTargetInvalid}
+              expectedMonthlyKpi={expectedMonthlyKpi}
+              isKpiQuotaExceeded={isKpiQuotaExceeded}
+              kpiQuota={kpiQuota}
+              onOpenKpiConfirm={handleOpenKpiConfirm}
+              currentWeekTotalSlots={currentWeekTotalSlots}
+              projectedMonthSlots={projectedMonthSlots}
+              pendingSlots={pendingSlots}
+              setPendingSlots={setPendingSlots}
+              onToggleSlot={toggleSlot}
+              batchConfirmOpen={batchConfirmOpen}
+              setBatchConfirmOpen={setBatchConfirmOpen}
+              onSubmitBatch={submitBatch}
+              isEditScheduleGridMode={isEditScheduleGridMode}
+              setIsEditScheduleGridMode={setIsEditScheduleGridMode}
+              selectedDeleteSlotIds={selectedDeleteSlotIds}
+              setSelectedDeleteSlotIds={setSelectedDeleteSlotIds}
+              onToggleDeleteSlot={toggleDeleteSlotId}
+              onOpenTeacherEditSchedule={() => setTeacherEditScheduleOpen(true)}
+              onOpenSyncConfirm={() => setSyncConfirmOpen(true)}
+              onOpenGridDeleteConfirm={() => setGridDeleteConfirmOpen(true)}
+              scheduleViewMode={scheduleViewMode}
+              setScheduleViewMode={setScheduleViewMode}
+              onLessonClick={setActiveLesson}
+              onAvailabilityClick={setActiveAvailability}
+              onSelectStudentCode={handleViewStudentSessions}
+              onOpenLessonDetail={setActiveLesson}
+              onSelectActiveStudent={setActiveStudentForSessions}
+              onReserveStudent={(s) => setReservationStudent(s)}
+              onResumeStudentRequest={(s) => setResumeStudent(s)}
+              computedMonthSummary={computedMonthSummary}
+              displayedWeeklyKpis={displayedWeeklyKpis}
             />
 
-            {teacherTab === 'register_cal' && (
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-3.5 rounded-3xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
-                  {/* Header: Tiêu đề + Chuẩn ca + Nút Sync đặt thẳng hàng */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        <span className="flex size-7 items-center justify-center rounded-xl bg-emerald-100 text-emerald-800 text-sm">📅</span>
-                        <h2 className="text-sm font-extrabold text-slate-800 tracking-tight">
-                          Đăng ký ca rảnh tháng {formatMonthKey(monthKey)}
-                        </h2>
-                      </div>
-                      <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-600 border border-slate-200/80">
-                        ⏱️ Chuẩn: 40 phút / ca
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {/* Button Sửa đổi lịch đăng ký cho GV (Không giới hạn) */}
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setTeacherEditScheduleOpen(true)}
-                        className="h-8 rounded-xl px-3 text-xs font-bold transition-all shadow-2xs shrink-0 cursor-pointer flex items-center gap-1.5 border-rose-300 bg-rose-50/80 text-rose-800 hover:bg-rose-100 hover:text-rose-900"
-                        title="Sửa đổi lịch đăng ký: Xóa các ca lỡ đăng ký (Không giới hạn số lần)"
-                      >
-                        <Trash2 className="size-3.5 text-rose-600" />
-                        <span>Sửa đổi lịch đăng ký</span>
-                      </Button>
-
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSyncConfirmOpen(true)}
-                        className="h-8 rounded-xl border-emerald-300 bg-emerald-50/60 px-3 text-xs font-bold text-emerald-800 hover:bg-emerald-100 hover:text-emerald-900 transition-all shadow-2xs shrink-0 cursor-pointer"
-                      >
-                        <RefreshCw data-icon="inline-start" className="size-3.5 mr-1.5 text-emerald-700" />
-                        Sync {weekName} cho các ngày/tuần khác
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Thanh chỉ số & thiết lập mục tiêu gọn gàng trên 3 cột cân đối */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {/* Cột 1: Mục tiêu ca rảnh hàng tuần & KPI expect tháng */}
-                    <div className="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-slate-50/70 p-3.5 gap-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
-                          <Target className="size-3.5 text-slate-500 shrink-0" />
-                          <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                            Mục tiêu ca rảnh
-                          </span>
-                        </div>
-                        <span className="text-[10px] font-semibold text-slate-400">
-                          Tuần ➔ Tháng (×4)
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-slate-700 whitespace-nowrap">Mỗi tuần:</span>
-                          <Input
-                            aria-label="Số ca rảnh mỗi tuần"
-                            className="w-16 h-8 rounded-xl border-slate-300 bg-white text-center text-xs font-black text-emerald-800 shadow-2xs disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
-                            min={1}
-                            disabled={isKpiQuotaExceeded}
-                            onChange={(event) => setWeeklyTargetInput(event.target.value)}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter') {
-                                event.preventDefault()
-                                handleOpenKpiConfirm()
-                              }
-                            }}
-                            required
-                            step={1}
-                            type="number"
-                            value={weeklyTargetInput}
-                          />
-                          <Button
-                            aria-label="Lưu số ca rảnh mỗi tuần"
-                            size="icon"
-                            disabled={weeklyTargetInvalid || isKpiQuotaExceeded}
-                            onClick={handleOpenKpiConfirm}
-                            className="h-8 w-8 rounded-xl shrink-0 cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                            title={
-                              isKpiQuotaExceeded
-                                ? 'Đã dùng hết 1 lần thay đổi trong tháng (Mục tiêu đã khóa)'
-                                : 'Lưu số ca rảnh mỗi tuần (yêu cầu xác nhận)'
-                            }
-                          >
-                            {isKpiQuotaExceeded ? (
-                              <Lock className="size-3.5 text-slate-400" />
-                            ) : (
-                              <Save className="size-3.5" />
-                            )}
-                          </Button>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-[10px] block font-medium text-slate-500">KPI expect:</span>
-                          <strong className="text-xs font-black text-emerald-800 bg-emerald-100/80 border border-emerald-200/80 px-2 py-0.5 rounded-lg inline-block font-mono">
-                            {expectedMonthlyKpi} ca/tháng
-                          </strong>
-                        </div>
-                      </div>
-
-                      {/* Quota status indicator */}
-                      {role === 'teacher' && (
-                        <div className="pt-1.5 flex items-center justify-between border-t border-slate-200/60">
-                          {isKpiQuotaExceeded ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-lg">
-                              <Lock className="size-3" /> Đã khóa (đã đổi 1 lần trong tháng)
-                            </span>
-                          ) : kpiQuota.count === 1 ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg">
-                              Còn 1 lần thay đổi trong tháng
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500">
-                              Chưa chốt mục tiêu tháng này
-                            </span>
-                          )}
-                          <span className="text-[10px] text-slate-400 font-bold font-mono">
-                            {kpiQuota.count}/2 lượt
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Cột 2: Đang chọn trên lịch & Quy đổi cả tháng */}
-                    <div className="flex flex-col justify-between rounded-2xl border border-teal-200/80 bg-teal-50/40 p-3.5 gap-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
-                          <CalendarDays className="size-3.5 text-teal-700 shrink-0" />
-                          <span className="text-[11px] font-extrabold uppercase tracking-wider text-teal-800">
-                            Đang chọn trên lịch
-                          </span>
-                          <span className="inline-flex size-2 rounded-full bg-teal-500 animate-pulse" title="Live update" />
-                        </div>
-                        <span className="text-[10px] font-bold text-teal-700 uppercase tracking-tight">Live</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <div>
-                          <span className="text-[10px] block font-bold text-slate-500">{weekName}</span>
-                          <div className="flex items-baseline gap-1">
-                            <strong className="text-lg font-black text-teal-900">{currentWeekTotalSlots}</strong>
-                            <span className="text-[11px] font-bold text-teal-700">ca</span>
-                            {pendingSlots.size > 0 && (
-                              <span className="rounded-full bg-teal-200/80 px-1.5 py-0.2 text-[9px] font-black text-teal-900">
-                                +{pendingSlots.size}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-center justify-center">
-                          <span className="text-[11px] font-black text-teal-600">➜ ×4 ➜</span>
-                          <span className="text-[9px] font-semibold text-slate-400">quy đổi</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-[10px] block font-bold text-slate-500">Mở cả tháng</span>
-                          <div className="flex items-baseline gap-1 justify-end">
-                            <strong className={cn(
-                              "text-lg font-black",
-                              projectedMonthSlots >= MIN_TEACHER_MONTHLY_COMMITMENT ? "text-emerald-900" : "text-amber-900"
-                            )}>
-                              {projectedMonthSlots}
-                            </strong>
-                            <span className="text-[11px] font-bold text-slate-600">ca</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Cột 3: Cam kết tối thiểu 110 ca/tháng */}
-                    <div className={cn(
-                      "flex flex-col justify-between rounded-2xl border p-3.5 gap-2 transition-all",
-                      projectedMonthSlots >= MIN_TEACHER_MONTHLY_COMMITMENT
-                        ? "border-emerald-200 bg-emerald-50/60 text-emerald-950"
-                        : "border-amber-200 bg-amber-50/60 text-amber-950"
-                    )}>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600">
-                          Cam kết tối thiểu
-                        </span>
-                        <span className="text-[11px] font-black text-slate-700">
-                          110 ca/tháng
-                        </span>
-                      </div>
-                      <div>
-                        {projectedMonthSlots >= MIN_TEACHER_MONTHLY_COMMITMENT ? (
-                          <div className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-white/90 px-2.5 py-1.5 text-xs font-bold text-emerald-900 shadow-2xs">
-                            <Sparkles className="size-4 text-emerald-600 shrink-0" />
-                            <span className="truncate">Đạt mốc Chuyên nghiệp 🌟 ({projectedMonthSlots}/110)</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-white/90 px-2.5 py-1.5 text-xs font-bold text-amber-900 shadow-2xs">
-                            <AlertTriangle className="size-4 text-amber-600 shrink-0" />
-                            <span className="truncate">Thiếu {MIN_TEACHER_MONTHLY_COMMITMENT - projectedMonthSlots} ca (Dự kiến {projectedMonthSlots}/110)</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Banner when in grid edit mode */}
-                {isEditScheduleGridMode && (
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border-2 border-rose-400 bg-rose-50/95 p-3.5 shadow-sm text-rose-950 animate-in fade-in duration-200">
-                    <div className="flex items-center gap-2.5">
-                      <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-rose-200 text-rose-800 font-black">
-                        ✏️
-                      </span>
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-black text-rose-900">
-                            CHẾ ĐỘ SỬA ĐỔI LỊCH (CHỌN CA RẢNH ĐỂ XÓA)
-                          </span>
-                          <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-900 border border-emerald-300">
-                            ✨ Không giới hạn
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-rose-800 font-medium">
-                          Click trực tiếp vào các ô ca rảnh trên lưới để chọn những ca bạn lỡ đăng ký cần xóa.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setIsEditScheduleGridMode(false)
-                          setSelectedDeleteSlotIds(new Set())
-                        }}
-                        className="h-8 rounded-xl border-rose-300 bg-white px-3 text-xs font-bold text-rose-800 hover:bg-rose-100 cursor-pointer"
-                      >
-                        Thoát chế độ sửa
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <ScheduleGrid
-                  role={role}
-                  personId={personId}
-                  teacherId={teacherId}
-                  weekDays={props.weekDays}
-                  timeIntervals={props.timeIntervals}
-                  availabilities={props.teacherAvailabilities}
-                  lessons={[]}
-                  defaultDuration={defaultDuration}
-                  redirectParams={mutationRedirectParams}
-                  onLessonClick={setActiveLesson}
-                  onAvailabilityClick={setActiveAvailability}
-                  availabilityMode="interactive"
-                  pendingSlots={pendingSlots}
-                  onSlotToggle={toggleSlot}
-                  isEditMode={isEditScheduleGridMode}
-                  selectedDeleteIds={selectedDeleteSlotIds}
-                  onToggleDeleteSlot={toggleDeleteSlotId}
-                />
-
-                {/* Sticky delete bar — appears in grid edit mode when slots are selected */}
-                {isEditScheduleGridMode && selectedDeleteSlotIds.size > 0 && (
-                  <div className="sticky bottom-4 z-40 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-rose-400 bg-rose-700 px-5 py-3 shadow-xl shadow-rose-900/30 text-white animate-in slide-in-from-bottom-2 duration-200">
-                    <div className="flex flex-wrap items-center gap-2.5 sm:gap-3.5">
-                      <span className="text-sm font-black">
-                        🗑️ Đang chọn <strong>{selectedDeleteSlotIds.size}</strong> ca rảnh để xóa
-                      </span>
-                      <span className="h-4 w-px bg-rose-500 hidden sm:block" />
-                      <span className="text-xs font-semibold text-rose-100">
-                        ✨ Thao tác không giới hạn số lần, bạn có thể tự do xóa và mở lại ca mới.
-                      </span>
-                    </div>
-                    <div className="flex gap-2 shrink-0">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedDeleteSlotIds(new Set())}
-                        className="h-8 rounded-xl border-rose-400 bg-rose-800 px-3 text-xs font-bold text-white hover:bg-rose-900 hover:text-white cursor-pointer"
-                      >
-                        Bỏ chọn
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => setGridDeleteConfirmOpen(true)}
-                        className="h-8 rounded-xl bg-white px-4 text-xs font-extrabold text-rose-800 hover:bg-rose-50 shadow-md cursor-pointer active:scale-95"
-                      >
-                        Xác nhận xóa {selectedDeleteSlotIds.size} ca →
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-              {/* Sticky save bar — appears when slots are selected */}
-              {pendingSlots.size > 0 && (
-                <div className="sticky bottom-4 z-40 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-teal-300 bg-teal-700 px-5 py-3 shadow-xl shadow-teal-900/30">
-                  <div className="flex flex-wrap items-center gap-2.5 sm:gap-3.5 text-white">
-                    <span className="text-sm font-black">
-                      ✓ Đang chọn <strong>{pendingSlots.size}</strong> ca rảnh mới
-                    </span>
-                    <span className="h-4 w-px bg-teal-500 hidden sm:block" />
-                    <span className="text-xs font-bold text-teal-100">
-                      {weekName}: <strong>{currentWeekTotalSlots}</strong> ca/tuần ➜ Sync cả tháng (x4):{' '}
-                      <strong className={projectedMonthSlots >= MIN_TEACHER_MONTHLY_COMMITMENT ? 'text-emerald-200 font-black' : 'text-amber-200 font-black'}>
-                        {projectedMonthSlots} ca/tháng
-                      </strong>
-                    </span>
-                    {projectedMonthSlots < MIN_TEACHER_MONTHLY_COMMITMENT ? (
-                      <span className="rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-200 px-2.5 py-0.5 text-[11px] font-bold">
-                        ⚠️ Thiếu {MIN_TEACHER_MONTHLY_COMMITMENT - projectedMonthSlots} ca so với mốc 110 ca
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-emerald-400/20 border border-emerald-300/40 text-emerald-200 px-2.5 py-0.5 text-[11px] font-bold">
-                        ✅ Đạt mốc 110 ca 🌟
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex gap-2 shrink-0">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setPendingSlots(new Set())}
-                      className="h-8 rounded-xl border-teal-400 bg-teal-800 px-3 text-xs font-bold text-white hover:bg-teal-900 hover:text-white"
-                    >
-                      Huỷ chọn
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => setBatchConfirmOpen(true)}
-                      className="h-8 rounded-xl bg-white px-4 text-xs font-extrabold text-teal-800 hover:bg-teal-50 shadow-md"
-                    >
-                      Lưu {pendingSlots.size} ca (Dự kiến {projectedMonthSlots} ca/tháng) →
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Batch confirm dialog */}
-              {batchConfirmOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-                  <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4">
-                    <div>
-                      <h3 className="text-base sm:text-lg font-black text-slate-900 leading-snug">
-                        Bạn đang xác nhận mở {projectedMonthSlots} ca trong tháng {formatMonthKey(monthKey)}?
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Lưu <strong>{pendingSlots.size} ca mới</strong> cho {weekName} (Tuần này có {currentWeekTotalSlots} ca ➔ x4: {projectedMonthSlots} ca sẽ mở trong tháng).
-                      </p>
-                    </div>
-
-                    {/* Policy Box */}
-                    <div className="rounded-2xl border border-teal-200 bg-teal-50/80 p-3.5 text-xs text-teal-950 space-y-1.5">
-                      <div className="flex items-center gap-2 font-black text-teal-900">
-                        <Target className="size-4 text-teal-700 shrink-0" />
-                        <span>Cam kết tối thiểu: 110 ca/tháng</span>
-                      </div>
-                      <p className="text-slate-700 leading-relaxed font-medium">
-                        GV cần mở tối thiểu <strong>110 ca trong tháng</strong> để đảm bảo đủ lịch dạy và đạt mốc hoạt động (Mốc <strong>Chuyên nghiệp 🌟</strong> tương ứng với 110 ca).
-                      </p>
-                    </div>
-
-                    {/* Conditional Status Banner */}
-                    {projectedMonthSlots < MIN_TEACHER_MONTHLY_COMMITMENT ? (
-                      <div className="rounded-2xl border border-amber-300 bg-amber-50 p-3.5 text-xs text-amber-950 space-y-1">
-                        <div className="flex items-center gap-2 font-black text-amber-800">
-                          <AlertTriangle className="size-4 text-amber-600 shrink-0" />
-                          <span>⚠️ Chưa đạt cam kết tối thiểu!</span>
-                        </div>
-                        <p className="leading-relaxed text-amber-900">
-                          Bạn chỉ đang xác nhận mở <strong>{projectedMonthSlots} ca</strong> trong tháng {formatMonthKey(monthKey)} (thiếu <strong>{MIN_TEACHER_MONTHLY_COMMITMENT - projectedMonthSlots} ca</strong> để đạt mốc tối thiểu 110 ca/tháng). GV cần mở tối thiểu 110 ca trong tháng để đảm bảo đủ lịch dạy và đạt mốc hoạt động.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-3.5 text-xs text-emerald-950 space-y-1">
-                        <div className="flex items-center gap-2 font-black text-emerald-800">
-                          <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
-                          <span>✅ Đạt mốc hoạt động cam kết!</span>
-                        </div>
-                        <p className="leading-relaxed text-emerald-900">
-                          Bạn đang xác nhận mở <strong>{projectedMonthSlots} ca</strong> trong tháng {formatMonthKey(monthKey)} (Đạt mốc cam kết tối thiểu 110 ca/tháng - Mốc Chuyên nghiệp 🌟).
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Pending Slots List */}
-                    <div>
-                      <div className="flex items-center justify-between text-xs font-bold text-slate-600 mb-2">
-                        <span>Danh sách {pendingSlots.size} ca rảnh mới:</span>
-                        <span className="text-slate-400">Trùng lịch sẽ tự động bỏ qua</span>
-                      </div>
-                      <ul className="max-h-44 space-y-1 overflow-y-auto rounded-2xl border border-slate-100 bg-slate-50 p-3">
-                        {Array.from(pendingSlots)
-                          .sort()
-                          .map((key) => {
-                            const [date, time] = key.split('|')
-                            const day = props.weekDays.find((d) => d.isoDate === date)
-                            return (
-                              <li key={key} className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                                <span className="font-mono text-teal-600">✓</span>
-                                <span>{day?.name ?? date} ({day?.dateFormatted ?? date})</span>
-                                <span className="ml-auto font-mono text-slate-500">{time}</span>
-                              </li>
-                            )
-                          })}
-                      </ul>
-                    </div>
-
-                    <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setBatchConfirmOpen(false)}
-                        className="rounded-xl px-4 text-xs font-bold"
-                      >
-                        Quay lại / Chọn thêm ca
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={submitBatch}
-                        className="rounded-xl bg-teal-700 px-5 text-xs font-extrabold text-white hover:bg-teal-800 shadow-sm"
-                      >
-                        Xác nhận mở ca
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-              </div>
-            )}
-
-            {teacherTab === 'teaching_cal' && (
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-col items-start justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-center">
-                <div className="flex flex-col gap-1">
-                  <h2 className="text-sm font-extrabold uppercase tracking-wider text-slate-900">
-                    📅 Lịch Dạy Thực Tế ({weekName}: {weekRange})
-                  </h2>
-                  <p className="text-xs font-medium text-slate-500">
-                    Chuyển đổi linh hoạt giữa xem theo Tuần và xem chi tiết theo Ngày
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  {/* View Mode Switch: Week vs Day */}
-                  <div className="flex items-center gap-1 rounded-2xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold shadow-2xs">
-                    <button
-                      type="button"
-                      onClick={() => setScheduleViewMode('week')}
-                      className={cn(
-                        'px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5',
-                        scheduleViewMode === 'week'
-                          ? 'bg-white text-slate-900 shadow-xs font-black'
-                          : 'text-slate-600 hover:text-slate-900'
-                      )}
-                    >
-                      <CalendarDays className="size-3.5" />
-                      <span>Xem Lịch Tuần</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setScheduleViewMode('day')}
-                      className={cn(
-                        'px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5',
-                        scheduleViewMode === 'day'
-                          ? 'bg-white text-emerald-800 shadow-xs font-black'
-                          : 'text-slate-600 hover:text-slate-900'
-                      )}
-                    >
-                      <Calendar className="size-3.5" />
-                      <span>Xem Theo Ngày</span>
-                    </button>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs shadow-inner">
-                    <div title="Số ca book tính ở Lịch Sales tuần này">
-                      <span className="block text-[10px] font-bold uppercase text-slate-400">
-                        Ca Book (Sales)
-                      </span>
-                      <strong className="text-sm font-black text-blue-600">
-                        {props.weekSummary.bookedCa} ca
-                      </strong>
-                    </div>
-                    <div className="h-6 w-px bg-slate-200" />
-                    <div title="Số ca mở tính ở tab Đăng Ký Lịch tuần này">
-                      <span className="block text-[10px] font-bold uppercase text-slate-400">
-                        Ca Mở (Đăng Ký)
-                      </span>
-                      <strong className="text-sm font-black text-emerald-700">
-                        {props.weekSummary.totalCa ?? props.weekSummary.availableCa} ca
-                      </strong>
-                    </div>
-                    <div className="h-6 w-px bg-slate-200" />
-                    <div title="Fill Rate = (Ca Book Sales ÷ Ca Mở Đăng Ký) × 100%">
-                      <span className="block text-[10px] font-bold uppercase text-slate-400">
-                        Fill Rate
-                      </span>
-                      <strong className="text-sm font-black text-indigo-600">
-                        {props.weekSummary.fillRatePercentage ?? (
-                          (props.weekSummary.totalCa ?? props.weekSummary.availableCa) > 0
-                            ? Math.round(
-                                (props.weekSummary.bookedCa /
-                                  (props.weekSummary.totalCa ?? props.weekSummary.availableCa)) *
-                                  100
-                              )
-                            : 0
-                        )}%
-                      </strong>
-                    </div>
-                    {(props.weekSummary.completedCa ?? 0) > 0 && (
-                      <>
-                        <div className="h-6 w-px bg-slate-200" />
-                        <div title="Done Rate = (Ca Hoàn Thành ÷ Ca Book Sales) × 100%">
-                          <span className="block text-[10px] font-bold uppercase text-slate-400">
-                            Done Rate
-                          </span>
-                          <strong className="text-sm font-black text-purple-600">
-                            {props.weekSummary.doneRatePercentage ?? (
-                              props.weekSummary.bookedCa > 0
-                                ? Math.round(
-                                    ((props.weekSummary.completedCa ?? 0) /
-                                      props.weekSummary.bookedCa) *
-                                      100
-                                  )
-                                : 0
-                            )}%
-                          </strong>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {scheduleViewMode === 'day' ? (
-                <DailyScheduleView
-                  role={role}
-                  personId={personId}
-                  teacherId={teacherId}
-                  teachers={props.people.teachers}
-                  weekDays={props.weekDays}
-                  timeIntervals={props.timeIntervals}
-                  availabilities={props.teacherAvailabilities}
-                  lessons={props.lessonSessions}
-                  defaultDuration={defaultDuration}
-                  redirectParams={mutationRedirectParams}
-                  onLessonClick={setActiveLesson}
-                  onAvailabilityClick={setActiveAvailability}
-                  availabilityMode="hidden"
-                  onSelectStudentCode={handleViewStudentSessions}
-                />
-              ) : (
-                <ScheduleGrid
-                  role={role}
-                  personId={personId}
-                  teacherId={teacherId}
-                  teachers={props.people.teachers}
-                  weekDays={props.weekDays}
-                  timeIntervals={props.timeIntervals}
-                  availabilities={props.teacherAvailabilities}
-                  lessons={props.lessonSessions}
-                  defaultDuration={defaultDuration}
-                  redirectParams={mutationRedirectParams}
-                  onLessonClick={setActiveLesson}
-                  onAvailabilityClick={setActiveAvailability}
-                  availabilityMode="hidden"
-                />
-              )}
-              </div>
-            )}
-
-            {teacherTab === 'todo' && (
-              <TeacherTodoListTab
-                role={role}
-                studentTracking={props.studentTracking}
-                monthLessonSessions={props.monthLessonSessions}
-                lessonSessions={props.lessonSessions}
-                selectedTeacherId={selectedTeacher?.id}
-                redirectParams={mutationRedirectParams}
-                onOpenLessonDetail={setActiveLesson}
-                onOpenStudentSessions={(code) => setActiveStudentForSessions(code)}
-              />
-            )}
-
-            {teacherTab === 'student_tracking' && (
-              <StudentTracking
-                role={role}
-                students={props.studentTracking}
-                teacherName={selectedTeacher?.name ?? ''}
-                onSelectStudent={setActiveStudentForSessions}
-                onReserveStudent={(s) => setReservationStudent(s)}
-                onResumeStudent={(s) => setResumeStudent(s)}
-                redirectParams={mutationRedirectParams}
-              />
-            )}
-
-            {teacherTab === 'dashboard' && (
-              <KpiPanels
-                monthSummary={computedMonthSummary}
-                monthKey={monthKey}
-                weeklyKpis={displayedWeeklyKpis}
-                editableWeeklyTargets={false}
-                studentTracking={props.studentTracking}
-              />
-            )}
-
-            {teacherTab === 'salary' && (
-              <SalaryCalculator
-                teacherId={teacherId}
-                teacherName={selectedTeacher?.name}
-                monthKey={monthKey}
-                monthSummary={props.monthSummary}
-                mode="teacher"
-                role={role}
-                monthLessonSessions={props.monthLessonSessions}
-                studentTracking={props.studentTracking}
-                onMonthChange={(newMonth) => {
-                  setMonthKey(newMonth)
-                  reload({ monthKey: newMonth })
-                }}
-                onSelectStudentCode={handleViewStudentSessions}
-                redirectParams={mutationRedirectParams}
-              />
-            )}
-
-            {teacherTab === 'ranking' && (
-              <RankingPolicyTab
-                role={role}
-                studentTracking={props.studentTracking}
-                monthKey={monthKey}
-                currentTeacherId={typeof teacherId === 'number' ? teacherId : (selectedTeacher?.id ?? 0)}
-                currentTeacherName={selectedTeacher?.name}
-              />
-            )}
-          </>
         ) : role === 'admin' ? (
-          <div className="flex flex-col gap-5">
-            {adminTab === 'dashboard' ? (
-              <>
-                <CalendarToolbar
-                  role={role}
-                  monthKey={monthKey}
-                  weekName={weekName}
-                  weeks={props.weeks}
-                  teacherId={teacherId}
-                  teachers={props.people.teachers}
-                  onChange={(values) => {
-                    if (values.monthKey) setMonthKey(values.monthKey)
-                    if (values.weekName) setWeekName(values.weekName)
-                    if (values.teacherId) setTeacherId(values.teacherId)
-                    reload(values)
-                  }}
-                />
-
-                <AdminDashboard
-                  stats={props.adminStats}
-                  monthKey={monthKey}
-                  onSelectStudent={(s) => handleViewStudentSessions(s.studentCode)}
-                  onOpenCalculator={() => setAdminTab('lead_calculator')}
-                />
-              </>
-            ) : adminTab === 'sales_dashboard' ? (
-              <>
-                <CalendarToolbar
-                  role={role}
-                  monthKey={monthKey}
-                  weekName={weekName}
-                  weeks={props.weeks}
-                  teacherId={teacherId}
-                  teachers={props.people.teachers}
-                  onChange={(values) => {
-                    if (values.monthKey) setMonthKey(values.monthKey)
-                    if (values.weekName) setWeekName(values.weekName)
-                    if (values.teacherId) setTeacherId(values.teacherId)
-                    reload(values)
-                  }}
-                />
-
-                <SalesOverviewDashboard
-                  adminStats={props.adminStats}
-                  teachers={props.people.teachers}
-                  allWeekAvailabilities={props.allWeekAvailabilities}
-                  allWeekLessons={props.allWeekLessons}
-                  weekDays={props.weekDays}
-                  weekName={weekName}
-                  monthKey={monthKey}
-                  studentTracking={props.studentTracking}
-                  onSelectTeacherForSchedule={(tId) => {
-                    setTeacherId(tId)
-                    setRole('sales')
-                    setNonTeacherTab('schedule')
-                    reload({ teacherId: tId, role: 'sales' })
-                  }}
-                  onSelectStudentCode={handleViewStudentSessions}
-                  onOpenLeadCalculator={() => setAdminTab('lead_calculator')}
-                />
-              </>
-            ) : adminTab === 'salary' ? (
-              <SalaryCalculator
-                monthKey={monthKey}
-                monthSummary={props.monthSummary}
-                adminStats={props.adminStats}
-                mode="admin"
-                role={role}
-                monthLessonSessions={props.monthLessonSessions}
-                onSwitchToTeacher={(tId) => {
-                  setTeacherId(tId)
-                  setRole('teacher')
-                  setTeacherTab('salary')
-                }}
-                onMonthChange={(newMonth) => {
-                  setMonthKey(newMonth)
-                  reload({ monthKey: newMonth })
-                }}
-                onSelectStudentCode={handleViewStudentSessions}
-                redirectParams={mutationRedirectParams}
-              />
-            ) : adminTab === 'ranking' ? (
-              <RankingPolicyTab
-                role={role}
-                studentTracking={props.studentTracking}
-                monthKey={monthKey}
-                adminStats={props.adminStats}
-                currentTeacherId={typeof teacherId === 'number' ? teacherId : (props.people.teachers[0]?.id ?? 0)}
-                currentTeacherName={selectedTeacher?.name || props.people.teachers[0]?.name}
-              />
-            ) : adminTab === 'lead_calculator' ? (
-              <LeadCapacityCalculator
-                autoEmptySlots={currentCenterEmptySlots}
-                autoEmptySource={`Lịch khả dụng toàn trung tâm tháng ${monthKey}`}
-                onViewSchedule={() => setAdminTab('dashboard')}
-              />
-            ) : adminTab === 'users' ? (
-              <UserManagement
-                users={props.adminUsers}
-                currentUser={currentUser}
-                people={props.people}
-              />
-            ) : null}
-          </div>
-        ) : (
-          <div className="flex flex-col gap-5">
-            <CalendarToolbar
-              role={role}
-              monthKey={monthKey}
-              weekName={weekName}
-              weeks={props.weeks}
-              teacherId={teacherId}
-              teachers={props.people.teachers}
-              onBookNew={() => setBookingOpen(true)}
-              onEditTeacherSchedule={handleOpenSalesEditSchedule}
-              hideWeekControls={nonTeacherTab === 'students' || nonTeacherTab === 'salary'}
-              onChange={(values) => {
-                if (values.monthKey) setMonthKey(values.monthKey)
-                if (values.weekName) setWeekName(values.weekName)
-                if (values.teacherId) setTeacherId(values.teacherId)
-                reload(values)
-              }}
-            />
-
-            {/* CS Reservation Reminder Banner - ONLY displayed for CS portal */}
-            {role === 'cs' && props.csReservationReminders && props.csReservationReminders.totalReserved > 0 && (
-              <CSReminderBanner
-                reminders={props.csReservationReminders}
-                students={role === 'cs' ? centerStudents : props.studentTracking}
-                onResumeStudent={(s) => setResumeStudent(s)}
-                onSelectStudent={(code) => handleViewStudentSessions(code)}
-              />
-            )}
-
-            <div className="flex flex-col gap-4">
-              {nonTeacherTab === 'sales_dashboard' ? (
-                <SalesOverviewDashboard
-                  adminStats={props.adminStats}
-                  teachers={props.people.teachers}
-                  allWeekAvailabilities={props.allWeekAvailabilities}
-                  allWeekLessons={props.allWeekLessons}
-                  weekDays={props.weekDays}
-                  weekName={weekName}
-                  monthKey={monthKey}
-                  studentTracking={props.studentTracking}
-                  onSelectTeacherForSchedule={(tId) => {
-                    setTeacherId(tId)
-                    setNonTeacherTab('schedule')
-                    reload({ teacherId: tId })
-                  }}
-                  onSelectStudentCode={handleViewStudentSessions}
-                  onOpenLeadCalculator={() => setNonTeacherTab('lead_calculator')}
-                />
-              ) : nonTeacherTab === 'students' ? (
-              <StudentTracking
-                role={role}
-                students={role === 'cs' ? centerStudents : props.studentTracking}
-                teacherName={role === 'cs' ? 'Toàn trung tâm' : (selectedTeacher?.name ?? '')}
-                teachers={role === 'cs' ? props.people.teachers : undefined}
-                isCenterWide={role === 'cs'}
-                onSelectStudent={setActiveStudentForSessions}
-                onReserveStudent={(s) => setReservationStudent(s)}
-                onResumeStudent={(s) => setResumeStudent(s)}
-                redirectParams={mutationRedirectParams}
-              />
-            ) : nonTeacherTab === 'daily' ? (
-              <DailyScheduleView
-                role={role}
-                personId={personId}
-                teacherId={teacherId}
-                teachers={props.people.teachers}
-                weekDays={props.weekDays}
-                timeIntervals={props.timeIntervals}
-                availabilities={props.teacherAvailabilities}
-                lessons={props.lessonSessions}
-                defaultDuration={defaultDuration}
-                redirectParams={mutationRedirectParams}
-                onLessonClick={setActiveLesson}
-                onAvailabilityClick={setActiveAvailability}
-                availabilityMode={role === 'sales' ? 'readonly' : 'hidden'}
-                onSelectStudentCode={handleViewStudentSessions}
-              />
-            ) : nonTeacherTab === 'ranking' && role !== 'cs' ? (
-              <RankingPolicyTab
-                role={role}
-                studentTracking={props.studentTracking}
-                monthKey={monthKey}
-                adminStats={props.adminStats}
-                currentTeacherId={typeof teacherId === 'number' ? teacherId : undefined}
-                currentTeacherName={selectedTeacher?.name}
-              />
-            ) : nonTeacherTab === 'salary' && role !== 'cs' ? (
-              <SalaryCalculator
-                teacherId={typeof teacherId === 'number' ? teacherId : (props.people.teachers[0]?.id ?? 0)}
-                teacherName={selectedTeacher?.name || 'Tất cả'}
-                monthKey={monthKey}
-                monthSummary={props.monthSummary}
-                studentTracking={props.studentTracking}
-                adminStats={props.adminStats}
-                mode={props.adminStats && props.adminStats.length > 0 ? 'admin' : 'teacher'}
-                role={role}
-                monthLessonSessions={props.monthLessonSessions}
-                onSwitchToTeacher={(tId) => {
-                  setTeacherId(tId)
-                  setRole('teacher')
-                  setTeacherTab('salary')
-                }}
-                onMonthChange={(newMonth) => {
-                  setMonthKey(newMonth)
-                  reload({ monthKey: newMonth })
-                }}
-                onSelectStudentCode={handleViewStudentSessions}
-                redirectParams={mutationRedirectParams}
-              />
-            ) : nonTeacherTab === 'lead_calculator' ? (
-              <LeadCapacityCalculator
-                autoEmptySlots={teacherWeeklyEmptySlots}
-                autoEmptySource={`Lịch tuần ${weekName} - GV ${selectedTeacher?.name || ''}`}
-                onViewSchedule={() => setNonTeacherTab('schedule')}
-              />
-            ) : (
-              <div className="flex flex-col gap-5">
-                <RoleScheduleSummary
-                  role={role}
-                  teacherName={teacherId === 'all' ? 'Toàn Trung Tâm (Tất cả Giảng Viên)' : (selectedTeacher?.name ?? '')}
-                  weekSummary={props.weekSummary}
-                  onEditSchedule={teacherId !== 'all' ? handleOpenSalesEditSchedule : undefined}
-                />
-
-                {/* Banner when in grid edit mode for Sales */}
-                {role === 'sales' && isEditScheduleGridMode && (
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border-2 border-rose-400 bg-rose-50/95 p-3.5 shadow-sm text-rose-950 animate-in fade-in duration-200">
-                    <div className="flex items-center gap-2.5">
-                      <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-rose-200 text-rose-800 font-black">
-                        ✏️
-                      </span>
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-black text-rose-900">
-                            CHẾ ĐỘ SỬA ĐỔI LỊCH GV (QUYỀN SALES: KHÔNG GIỚI HẠN)
-                          </span>
-                          <span className="rounded-md bg-amber-200/90 px-2 py-0.5 text-[10px] font-black text-amber-900 border border-amber-300">
-                            👑 Không giới hạn lượt sửa
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-rose-800 font-medium">
-                          Click trực tiếp vào các ô ca rảnh trên lưới để chọn những ca bạn muốn xóa cho GV <strong>{selectedTeacher?.name}</strong>. Thao tác không trừ hạn mức của giáo viên.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setIsEditScheduleGridMode(false)
-                          setSelectedDeleteSlotIds(new Set())
-                        }}
-                        className="h-8 rounded-xl border-rose-300 bg-white px-3 text-xs font-bold text-rose-800 hover:bg-rose-100 cursor-pointer"
-                      >
-                        Thoát chế độ sửa
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <ScheduleGrid
-                  role={role}
-                  personId={personId}
-                  teacherId={teacherId}
-                  teachers={props.people.teachers}
-                  weekDays={props.weekDays}
-                  timeIntervals={props.timeIntervals}
-                  availabilities={props.teacherAvailabilities}
-                  lessons={props.lessonSessions}
-                  defaultDuration={defaultDuration}
-                  redirectParams={mutationRedirectParams}
-                  onLessonClick={setActiveLesson}
-                  onAvailabilityClick={setActiveAvailability}
-                  onEmptySlotClick={(date, time, dayHeaderLabel) => {
-                    setBookingPrefill({ date, time, dayName: dayHeaderLabel.split(' (')[0] })
-                    setBookingOpen(true)
-                  }}
-                  availabilityMode={role === 'sales' ? 'readonly' : 'hidden'}
-                  isEditMode={role === 'sales' && isEditScheduleGridMode}
-                  selectedDeleteIds={selectedDeleteSlotIds}
-                  onToggleDeleteSlot={toggleDeleteSlotId}
-                />
-
-                {/* Sticky delete bar for Sales in grid edit mode */}
-                {role === 'sales' && isEditScheduleGridMode && selectedDeleteSlotIds.size > 0 && (
-                  <div className="sticky bottom-4 z-40 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-rose-400 bg-rose-700 px-5 py-3 shadow-xl shadow-rose-900/30 text-white animate-in slide-in-from-bottom-2 duration-200">
-                    <div className="flex flex-wrap items-center gap-2.5 sm:gap-3.5">
-                      <span className="text-sm font-black">
-                        🗑️ Đang chọn <strong>{selectedDeleteSlotIds.size}</strong> ca rảnh của GV {selectedTeacher?.name} để xóa
-                      </span>
-                      <span className="h-4 w-px bg-rose-500 hidden sm:block" />
-                      <span className="text-xs font-semibold text-rose-100">
-                        👑 Quyền Sales: Không giới hạn số lần sửa và không tính vào hạn mức của giáo viên.
-                      </span>
-                    </div>
-                    <div className="flex gap-2 shrink-0">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedDeleteSlotIds(new Set())}
-                        className="h-8 rounded-xl border-rose-400 bg-rose-800 px-3 text-xs font-bold text-white hover:bg-rose-900 hover:text-white cursor-pointer"
-                      >
-                        Bỏ chọn
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => setGridDeleteConfirmOpen(true)}
-                        className="h-8 rounded-xl bg-white px-4 text-xs font-extrabold text-rose-800 hover:bg-rose-50 shadow-md cursor-pointer active:scale-95"
-                      >
-                        Xác nhận xóa {selectedDeleteSlotIds.size} ca →
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      </div>
-
-      <div aria-hidden={activeLesson === null && !bookingOpen}>
-        <LessonDetailDialog
-          role={role}
-          lesson={activeLesson}
-          open={activeLesson !== null}
-          onOpenChange={(open) => {
-            if (!open) setActiveLesson(null)
-          }}
-          onReschedule={(lesson) => {
-            setActiveLesson(null)
-            setRescheduleLesson(lesson)
-          }}
-          onEditEnrollment={setEditEnrollment}
-          redirectParams={mutationRedirectParams}
-          onViewStudentSessions={handleViewStudentSessions}
-        />
-
-        <AvailabilityDetailDialog
-          availability={activeAvailability}
-          open={activeAvailability !== null}
-          onOpenChange={(open) => {
-            if (!open) setActiveAvailability(null)
-          }}
-          redirectParams={mutationRedirectParams}
-          isUnlimited={true}
-          role={role}
-          onDeleteSuccess={handleSingleAvailabilityDeleteSuccess}
-          onOpenEditDialog={() => setTeacherEditScheduleOpen(true)}
-        />
-
-        <TeacherEditScheduleDialog
-          open={teacherEditScheduleOpen}
-          onOpenChange={setTeacherEditScheduleOpen}
-          teacherName={selectedTeacher?.name || 'Giáo viên'}
-          teacherId={role === 'teacher' ? effectiveTeacherId : (typeof teacherId === 'number' ? teacherId : (selectedTeacher?.id ?? effectiveTeacherId))}
-          monthKey={monthKey}
-          weekName={weekName}
-          weekAvailabilities={props.teacherAvailabilities}
-          monthAvailabilities={props.monthAvailabilities ?? props.teacherAvailabilities}
-          isUnlimited={true}
-          role={role}
-          onConfirmDelete={handleBatchDeleteAvailabilities}
-          onSwitchToGridMode={() => {
-            setIsEditScheduleGridMode(true)
-            setSelectedDeleteSlotIds(new Set())
-            if (role === 'sales') {
+          <AdminPortal
+            role={role}
+            props={props}
+            mutationRedirectParams={mutationRedirectParams}
+            adminTab={adminTab}
+            setAdminTab={setAdminTab}
+            monthKey={monthKey}
+            weekName={weekName}
+            teacherId={teacherId}
+            selectedTeacher={selectedTeacher}
+            currentUser={currentUser}
+            currentCenterEmptySlots={currentCenterEmptySlots}
+            onCalendarToolbarChange={(values) => {
+              if (values.monthKey) setMonthKey(values.monthKey)
+              if (values.weekName) setWeekName(values.weekName)
+              if (values.teacherId) setTeacherId(values.teacherId)
+              reload(values)
+            }}
+            onSelectStudentCode={handleViewStudentSessions}
+            onSwitchToSalesSchedule={(tId) => {
+              setTeacherId(tId)
+              setRole('sales')
               setNonTeacherTab('schedule')
-            }
-            toast.info('🎯 Đã bật chế độ chọn ca trên lịch. Hãy click vào các ca rảnh muốn xóa.')
-          }}
-        />
-
-        <TeacherSyncScheduleDialog
-          open={syncConfirmOpen}
-          onOpenChange={setSyncConfirmOpen}
-          teacherId={role === 'teacher' ? effectiveTeacherId : (typeof teacherId === 'number' ? teacherId : (selectedTeacher?.id ?? effectiveTeacherId))}
-          teacherName={selectedTeacher?.name || selectedPerson?.name || 'Giáo viên'}
-          monthKey={monthKey}
-          weekName={weekName}
-          weekDays={props.weekDays}
-          currentSavedSlotsCount={currentWeekSavedAvailabilities}
-          pendingSlots={pendingSlots}
-          defaultDuration={defaultDuration}
-          weeks={props.weeks}
-          mutationRedirectParams={mutationRedirectParams}
-          onSyncSuccess={() => {
-            setPendingSlots(new Set())
-            toast.success('Đã đồng bộ lịch dạy thành công!')
-          }}
-        />
-
-        {/* Grid Delete Confirm Modal */}
-        {gridDeleteConfirmOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-            <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4">
-              <div className="flex items-center gap-2.5 text-rose-900">
-                <span className="flex size-9 items-center justify-center rounded-2xl bg-rose-100 text-rose-800">
-                  <Trash2 className="size-5" />
-                </span>
-                <div>
-                  <h3 className="text-base font-black text-slate-900 leading-snug">
-                    {role === 'sales' || role === 'admin'
-                      ? `Xác nhận xóa ${selectedDeleteSlotIds.size} ca rảnh của GV ${selectedTeacher?.name || ''}?`
-                      : `Xác nhận xóa ${selectedDeleteSlotIds.size} ca rảnh đã chọn?`}
-                  </h3>
-                  <p className="text-xs text-slate-500 font-medium">
-                    {role === 'sales' || role === 'admin'
-                      ? '👑 Quyền Sales: Không giới hạn số lần sửa'
-                      : '✨ Không giới hạn số lần sửa'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-rose-200 bg-rose-50/80 p-3.5 text-xs text-rose-950 space-y-1.5">
-                {role === 'sales' || role === 'admin' ? (
-                  <p className="leading-relaxed">
-                    Bạn đang chuẩn bị xóa <strong>{selectedDeleteSlotIds.size} ca rảnh</strong> đã chọn trên lịch cho giáo viên <strong>{selectedTeacher?.name}</strong>.
-                    Thao tác này được thực hiện với quyền Quản lý Sales và không bị giới hạn số lần.
-                  </p>
-                ) : (
-                  <p className="leading-relaxed">
-                    Bạn đang chuẩn bị xóa <strong>{selectedDeleteSlotIds.size} ca rảnh</strong> đã chọn trên lịch.
-                    Thao tác này không bị giới hạn số lần, bạn có thể đăng ký lại ca mới bất cứ lúc nào.
-                  </p>
-                )}
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setGridDeleteConfirmOpen(false)}
-                  className="rounded-xl px-4 text-xs font-bold cursor-pointer"
-                >
-                  Quay lại
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => handleBatchDeleteAvailabilities(Array.from(selectedDeleteSlotIds))}
-                  className="rounded-xl bg-rose-600 hover:bg-rose-700 px-5 text-xs font-extrabold text-white shadow-sm cursor-pointer active:scale-95"
-                >
-                  Xác nhận xóa {selectedDeleteSlotIds.size} ca
-                </Button>
-              </div>
-            </div>
-          </div>
+              reload({ teacherId: tId, role: 'sales' })
+            }}
+            onSwitchToTeacherSalary={(tId) => {
+              setTeacherId(tId)
+              setRole('teacher')
+              setTeacherTab('salary')
+            }}
+          />
+        ) : (
+          <SalesCsPortal
+            role={role}
+            props={props}
+            mutationRedirectParams={mutationRedirectParams}
+            nonTeacherTab={nonTeacherTab}
+            setNonTeacherTab={setNonTeacherTab}
+            monthKey={monthKey}
+            weekName={weekName}
+            teacherId={teacherId}
+            personId={personId}
+            defaultDuration={defaultDuration}
+            selectedTeacher={selectedTeacher}
+            centerStudents={centerStudents}
+            teacherWeeklyEmptySlots={teacherWeeklyEmptySlots}
+            isEditScheduleGridMode={isEditScheduleGridMode}
+            setIsEditScheduleGridMode={setIsEditScheduleGridMode}
+            selectedDeleteSlotIds={selectedDeleteSlotIds}
+            setSelectedDeleteSlotIds={setSelectedDeleteSlotIds}
+            onToggleDeleteSlot={toggleDeleteSlotId}
+            onOpenGridDeleteConfirm={() => setGridDeleteConfirmOpen(true)}
+            onOpenBooking={() => setBookingOpen(true)}
+            onOpenSalesEditSchedule={handleOpenSalesEditSchedule}
+            onEmptySlotClick={(date, time, dayHeaderLabel) => {
+              setBookingPrefill({ date, time, dayName: dayHeaderLabel.split(' (')[0] })
+              setBookingOpen(true)
+            }}
+            onLessonClick={setActiveLesson}
+            onAvailabilityClick={setActiveAvailability}
+            onSelectStudentCode={handleViewStudentSessions}
+            onSelectActiveStudent={setActiveStudentForSessions}
+            onReserveStudent={(s) => setReservationStudent(s)}
+            onResumeStudentRequest={(s) => setResumeStudent(s)}
+            onCalendarToolbarChange={(values) => {
+              if (values.monthKey) setMonthKey(values.monthKey)
+              if (values.weekName) setWeekName(values.weekName)
+              if (values.teacherId) setTeacherId(values.teacherId)
+              reload(values)
+            }}
+            onSwitchToSalesScheduleSameRole={(tId) => {
+              setTeacherId(tId)
+              setNonTeacherTab('schedule')
+              reload({ teacherId: tId })
+            }}
+            onSwitchToTeacherSalary={(tId) => {
+              setTeacherId(tId)
+              setRole('teacher')
+              setTeacherTab('salary')
+            }}
+          />
         )}
-
-        <SalesBookingDialog
-          open={bookingOpen}
-          onOpenChange={setBookingOpen}
-          teachers={props.people.teachers}
-          salesId={personId}
-          selectedTeacherId={typeof teacherId === 'number' ? teacherId : (props.people.teachers[0]?.id ?? 0)}
-          timeIntervals={props.timeIntervals}
-          redirectParams={mutationRedirectParams}
-          prefill={bookingPrefill}
-          enrollments={props.enrollments ?? []}
-        />
-
-        <RescheduleDialog
-          lesson={rescheduleLesson}
-          open={rescheduleLesson !== null}
-          onOpenChange={(open) => {
-            if (!open) setRescheduleLesson(null)
-          }}
-          timeIntervals={props.timeIntervals}
-          redirectParams={mutationRedirectParams}
-          role={role}
-          onEditEnrollment={setEditEnrollment}
-        />
-
-        <StudentSessionsDialog
-          open={activeStudentForSessions !== null}
-          onOpenChange={(open) => {
-            if (!open) setActiveStudentForSessions(null)
-          }}
-          student={currentActiveStudentForSessions}
-          redirectParams={mutationRedirectParams}
-          role={role}
-          allStudents={role === 'cs' ? centerStudents : props.studentTracking}
-          onSelectStudent={setActiveStudentForSessions}
-          onReserveStudent={(s) => setReservationStudent(s)}
-          onResumeStudent={(s) => setResumeStudent(s)}
-          teachers={props.people.teachers}
-          timeIntervals={props.timeIntervals}
-        />
-
-        <EditEnrollmentDialog
-          enrollment={editEnrollment}
-          open={editEnrollment !== null}
-          onOpenChange={(open) => {
-            if (!open) setEditEnrollment(null)
-          }}
-          redirectParams={mutationRedirectParams}
-        />
-
-        <ReservationDialog
-          open={reservationStudent !== null}
-          student={currentReservationStudent}
-          teacherName={currentReservationStudent?.teacherName || selectedTeacher?.name}
-          redirectParams={mutationRedirectParams}
-          onClose={() => setReservationStudent(null)}
-        />
-
-        <ResumeReservationDialog
-          open={resumeStudent !== null}
-          student={currentResumeStudent}
-          teachers={props.people.teachers}
-          redirectParams={mutationRedirectParams}
-          onClose={() => setResumeStudent(null)}
-        />
-
-        <LeadCapacityCalculatorDialog
-          open={leadCalculatorOpen}
-          onOpenChange={setLeadCalculatorOpen}
-          initialEmptySlots={currentCenterEmptySlots || 46}
-        />
-
-        <TeacherKpiConfirmDialog
-          open={kpiConfirmOpen}
-          onOpenChange={setKpiConfirmOpen}
-          targetWeekly={weeklyTargetValue}
-          monthKey={monthKey}
-          changeCount={kpiQuota.count}
-          onConfirm={handleConfirmSaveKpiTarget}
-        />
       </div>
+
+      <SchedulerModals
+        role={role}
+        props={props}
+        redirectParams={mutationRedirectParams}
+        activeLesson={activeLesson}
+        onCloseLessonDetail={() => setActiveLesson(null)}
+        rescheduleLesson={rescheduleLesson}
+        onOpenReschedule={(lesson) => {
+          setActiveLesson(null)
+          setRescheduleLesson(lesson)
+        }}
+        onCloseReschedule={() => setRescheduleLesson(null)}
+        activeAvailability={activeAvailability}
+        onCloseAvailabilityDetail={() => setActiveAvailability(null)}
+        onAvailabilityDeleteSuccess={handleSingleAvailabilityDeleteSuccess}
+        teacherEditScheduleOpen={teacherEditScheduleOpen}
+        onTeacherEditScheduleOpenChange={setTeacherEditScheduleOpen}
+        syncConfirmOpen={syncConfirmOpen}
+        onSyncConfirmOpenChange={setSyncConfirmOpen}
+        gridDeleteConfirmOpen={gridDeleteConfirmOpen}
+        onGridDeleteConfirmOpenChange={setGridDeleteConfirmOpen}
+        selectedTeacherName={selectedTeacher?.name || selectedPerson?.name}
+        displayTeacherId={
+          role === 'teacher'
+            ? effectiveTeacherId
+            : (typeof teacherId === 'number' ? teacherId : (selectedTeacher?.id ?? effectiveTeacherId))
+        }
+        monthKey={monthKey}
+        weekName={weekName}
+        currentWeekSavedAvailabilities={currentWeekSavedAvailabilities}
+        pendingSlots={pendingSlots}
+        defaultDuration={defaultDuration}
+        selectedDeleteSlotIds={selectedDeleteSlotIds}
+        onConfirmBatchDeleteAvailabilities={handleBatchDeleteAvailabilities}
+        onSyncSuccess={() => {
+          setPendingSlots(new Set())
+          toast.success('Đã đồng bộ lịch dạy thành công!')
+        }}
+        onEnterGridEditMode={() => {
+          setIsEditScheduleGridMode(true)
+          setSelectedDeleteSlotIds(new Set())
+          if (role === 'sales') {
+            setNonTeacherTab('schedule')
+          }
+        }}
+        bookingOpen={bookingOpen}
+        onBookingOpenChange={setBookingOpen}
+        personId={personId}
+        teacherId={teacherId}
+        bookingPrefill={bookingPrefill}
+        editEnrollment={editEnrollment}
+        onOpenEditEnrollment={setEditEnrollment}
+        onCloseEditEnrollment={() => setEditEnrollment(null)}
+        activeStudentForSessions={activeStudentForSessions}
+        currentActiveStudentForSessions={currentActiveStudentForSessions}
+        onCloseStudentSessions={() => setActiveStudentForSessions(null)}
+        onSelectActiveStudent={setActiveStudentForSessions}
+        onViewStudentSessions={handleViewStudentSessions}
+        centerStudents={centerStudents}
+        reservationStudent={reservationStudent}
+        currentReservationStudent={currentReservationStudent}
+        onCloseReservation={() => setReservationStudent(null)}
+        resumeStudent={resumeStudent}
+        currentResumeStudent={currentResumeStudent}
+        onCloseResume={() => setResumeStudent(null)}
+        onReserveStudent={(s) => setReservationStudent(s)}
+        onResumeStudentRequest={(s) => setResumeStudent(s)}
+        leadCalculatorOpen={leadCalculatorOpen}
+        onLeadCalculatorOpenChange={setLeadCalculatorOpen}
+        currentCenterEmptySlots={currentCenterEmptySlots}
+        kpiConfirmOpen={kpiConfirmOpen}
+        onKpiConfirmOpenChange={setKpiConfirmOpen}
+        weeklyTargetValue={weeklyTargetValue}
+        kpiQuota={kpiQuota}
+        onConfirmSaveKpiTarget={handleConfirmSaveKpiTarget}
+      />
     </main>
   </div>
 )
@@ -2309,115 +1290,6 @@ function roleBadgeLabel(role: PersonRole, name?: string) {
   return name ?? (role === 'sales' ? 'Sales' : 'CS')
 }
 
-function RoleScheduleSummary({
-  role,
-  teacherName,
-  weekSummary,
-  onEditSchedule,
-}: {
-  role: PersonRole
-  teacherName: string
-  weekSummary: SchedulerProps['weekSummary']
-  onEditSchedule?: () => void
-}) {
-  const availableCa = weekSummary.availableCa
-  const bookedCa = weekSummary.bookedCa
-  const completedCa = weekSummary.completedCa ?? 0
-  const totalCa = weekSummary.totalCa ?? availableCa
-  const fillRate =
-    weekSummary.fillRatePercentage ??
-    (totalCa > 0 ? Math.round((bookedCa / totalCa) * 100) : 0)
-  const doneRate =
-    weekSummary.doneRatePercentage ??
-    (bookedCa > 0 ? Math.round((completedCa / bookedCa) * 100) : 0)
-
-  const isAllTeachers = !teacherName || teacherName.includes('Toàn Trung Tâm')
-
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-600 shadow-inner">
-        <span>
-          {isAllTeachers ? 'Phạm vi: ' : 'Giáo Viên: '}
-          <strong className="text-sm font-black text-emerald-800">
-            {teacherName || 'Toàn Trung Tâm (Tất cả Giảng Viên)'}
-          </strong>
-        </span>
-        {role === 'cs' && (
-          <span className="text-slate-500">
-            (💡 <strong>Click ca học</strong> xem chi tiết hoặc <strong>Kéo thả</strong> để dời lịch)
-          </span>
-        )}
-      </div>
-      {role === 'sales' ? (
-        <div className="flex flex-wrap items-center gap-2.5 text-xs">
-          <span
-            className="rounded-xl border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 font-bold text-emerald-800 shadow-2xs"
-            title="Số ca mở tính ở tab Đăng Ký Lịch của GV tuần này"
-          >
-            🎯 Ca Mở (Đăng Ký): <strong>{totalCa}</strong> ca{' '}
-            <span className="text-[11px] font-normal text-emerald-600">(Rảnh: {availableCa} ca)</span>
-          </span>
-          <span
-            className="rounded-xl border border-blue-200 bg-blue-50/80 px-3 py-1.5 font-bold text-blue-800 shadow-2xs"
-            title="Số ca book tính ở Lịch Sales tuần này"
-          >
-            📚 Ca Book (Sales): <strong>{bookedCa}</strong> ca{' '}
-            <span className="text-[11px] font-normal text-blue-600">(Đã Book: {bookedCa} ca)</span>
-          </span>
-          <span
-            className="rounded-xl border border-indigo-200 bg-indigo-50/80 px-3 py-1.5 font-bold text-indigo-800 shadow-2xs"
-            title="Fill Rate = (Ca Book Sales ÷ Ca Mở Đăng Ký) × 100%"
-          >
-            📈 Fill Rate: <strong>{fillRate}%</strong>
-          </span>
-          {onEditSchedule && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onEditSchedule}
-              className="h-8 rounded-xl border-rose-300 bg-rose-50/90 text-rose-800 hover:bg-rose-100 hover:text-rose-900 px-3 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all active:scale-95 shrink-0"
-              title="Sửa đổi lịch đăng ký của GV này (Xóa các ca rảnh - Quyền Sales: Không giới hạn)"
-            >
-              <Trash2 className="size-3.5 text-rose-600" />
-              <span>Sửa Lịch GV</span>
-            </Button>
-          )}
-        </div>
-      ) : role === 'cs' ? (
-        <div className="flex flex-wrap items-center gap-2.5 text-xs">
-          <span
-            className="rounded-xl border border-blue-200 bg-blue-50/80 px-3 py-1.5 font-bold text-blue-800 shadow-2xs"
-            title="Số ca book ở Lịch Sales tuần này"
-          >
-            📚 Ca Book (Sales): <strong>{bookedCa}</strong> ca{' '}
-            <span className="text-[11px] font-normal text-blue-600">(Đã Book tuần này: {bookedCa} ca)</span>
-          </span>
-          <span
-            className="rounded-xl border border-purple-200 bg-purple-50/80 px-3 py-1.5 font-bold text-purple-800 shadow-2xs"
-            title="Số ca hoàn thành (điểm danh CS/GV)"
-          >
-            ✅ Hoàn Thành: <strong>{completedCa}</strong> ca
-          </span>
-          <span
-            className="rounded-xl border border-purple-200 bg-purple-50/80 px-3 py-1.5 font-bold text-purple-800 shadow-2xs"
-            title="Done Rate = (Ca Hoàn Thành ÷ Ca Book Sales) × 100%"
-          >
-            🎯 Done Rate: <strong>{doneRate}%</strong>
-          </span>
-          <span
-            className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 font-bold text-slate-700 shadow-2xs"
-            title="Tổng ca GV mở ở tab Đăng Ký Lịch"
-          >
-            Ca Mở (Đăng Ký): <strong>{totalCa}</strong> ca (Fill: {fillRate}%)
-          </span>
-        </div>
-      ) : (
-        <div className="text-xs font-bold text-blue-600">Đã Book tuần này: {bookedCa} ca</div>
-      )}
-    </div>
-  )
-}
 
 function readWeeklyTargetOverrides() {
   if (typeof window === 'undefined') return {}

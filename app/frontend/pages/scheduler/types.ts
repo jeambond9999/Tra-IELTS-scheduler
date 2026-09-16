@@ -293,6 +293,15 @@ export type SchedulerProps = {
   csReservationReminders?: CSReservationReminders
 }
 
+export type StudentTrackingItem = SchedulerProps['studentTracking'][number]
+
+export type KpiQuotaState = {
+  count: number
+  initialTarget?: number
+  updatedTarget?: number
+  lastUpdated?: string
+}
+
 export type UserAccount = {
   id: number
   name: string
