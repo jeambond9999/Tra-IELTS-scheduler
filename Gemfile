@@ -117,7 +117,7 @@ gem "pagy", "~> 43.5"
 gem "discard", "~> 2.0"
 
 # JSON store enhancements
-gem "store_attribute", "~> 2.0"
+gem "store_attribute", "~> 2.2"
 gem "store_model", "~> 4.4"
 
 # Solid Queue web UI
