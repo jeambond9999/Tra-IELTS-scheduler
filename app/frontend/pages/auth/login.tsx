@@ -161,8 +161,16 @@ export default function Login() {
           </Button>
         </form>
 
-        <div className="text-center text-xs text-slate-400 font-medium">
-          Trà IELTS &copy; {new Date().getFullYear()} - All rights reserved.
+        <div className="text-center text-xs text-slate-400 font-medium space-y-1">
+          <div>Trà IELTS &copy; {new Date().getFullYear()} - All rights reserved.</div>
+          <div className="flex justify-center gap-3">
+            <a href="/privacy" className="hover:text-slate-600 underline-offset-2 hover:underline">
+              Chính sách quyền riêng tư
+            </a>
+            <a href="/terms" className="hover:text-slate-600 underline-offset-2 hover:underline">
+              Điều khoản sử dụng
+            </a>
+          </div>
         </div>
       </div>
     </div>

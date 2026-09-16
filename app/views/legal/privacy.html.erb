@@ -1,0 +1,64 @@
+<% content_for :title, "Chính sách quyền riêng tư" %>
+
+<h1>Chính sách quyền riêng tư</h1>
+<p class="meta">Hiệu lực từ ngày <%= LegalController::EFFECTIVE_DATE %></p>
+
+<p>
+  Hệ thống xếp lịch Trà IELTS (<a href="https://traielts.com">traielts.com</a>) là công cụ nội bộ giúp Trung tâm Trà IELTS
+  quản lý lịch dạy, lịch học và quá trình học tập của học viên. Chỉ nhân sự đã được Admin của trung tâm cấp tài khoản mới
+  đăng nhập và sử dụng được hệ thống.
+</p>
+
+<h2>1. Thông tin chúng tôi nhận khi bạn đăng nhập bằng Google</h2>
+<ul>
+  <li>Địa chỉ email</li>
+  <li>Họ tên và ảnh đại diện của tài khoản Google</li>
+  <li>Mã định danh tài khoản Google (để nhận ra bạn ở những lần đăng nhập sau)</li>
+</ul>
+<p>
+  Hệ thống <strong>không</strong> truy cập Gmail, Google Drive, Google Calendar, danh bạ hay bất kỳ dữ liệu Google nào khác của bạn.
+</p>
+
+<h2>2. Mục đích sử dụng</h2>
+<p>
+  Các thông tin trên chỉ được dùng để xác thực đúng nhân sự đã được cấp tài khoản và hiển thị tên, ảnh đại diện trong hệ thống.
+  Chúng tôi không dùng thông tin này cho quảng cáo, không bán và không chia sẻ cho bất kỳ bên thứ ba nào.
+</p>
+
+<h2>3. Dữ liệu vận hành trong hệ thống</h2>
+<p>
+  Để phục vụ việc giảng dạy và chăm sóc học viên, nhân sự của trung tâm nhập vào hệ thống: lịch rảnh và lịch dạy của giáo viên;
+  thông tin học viên như họ tên, mã học viên, khóa học, trình độ đầu vào và mục tiêu, kết quả thi, ghi chú buổi học và tình trạng học phí.
+  Mỗi nhân sự chỉ xem và chỉnh sửa được phần dữ liệu thuộc vai trò của mình (Giáo viên, Sales, Chăm sóc học viên, Admin).
+</p>
+
+<h2>4. Lưu trữ và bảo mật</h2>
+<p>
+  Dữ liệu được lưu trên máy chủ của nhà cung cấp hạ tầng Render đặt tại Hoa Kỳ. Mọi kết nối tới hệ thống đều được mã hóa qua HTTPS
+  và quyền truy cập được giới hạn theo vai trò của từng tài khoản.
+</p>
+
+<h2>5. Thời gian lưu trữ và yêu cầu xóa dữ liệu</h2>
+<p>
+  Thông tin tài khoản được giữ trong thời gian bạn làm việc với trung tâm. Khi nhân sự nghỉ việc, tài khoản được chuyển sang trạng thái
+  ngừng hoạt động và không thể đăng nhập. Bạn có thể yêu cầu xem, chỉnh sửa hoặc xóa thông tin cá nhân của mình bằng cách gửi email tới
+  <a href="mailto:<%= LegalController::CONTACT_EMAIL %>"><%= LegalController::CONTACT_EMAIL %></a>.
+</p>
+
+<h2>6. Cookie</h2>
+<p>
+  Hệ thống chỉ dùng cookie cần thiết để duy trì phiên đăng nhập. Chúng tôi không dùng cookie theo dõi hay cookie quảng cáo.
+</p>
+
+<h2>7. Tuân thủ chính sách của Google</h2>
+<p>
+  Việc sử dụng và chuyển giao thông tin nhận được từ Google APIs tuân thủ
+  <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>,
+  bao gồm các yêu cầu Limited Use.
+</p>
+
+<h2>8. Liên hệ</h2>
+<p>
+  Mọi câu hỏi về chính sách này, vui lòng liên hệ
+  <a href="mailto:<%= LegalController::CONTACT_EMAIL %>"><%= LegalController::CONTACT_EMAIL %></a>.
+</p>

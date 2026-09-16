@@ -1,0 +1,42 @@
+<% content_for :title, "Điều khoản sử dụng" %>
+
+<h1>Điều khoản sử dụng</h1>
+<p class="meta">Hiệu lực từ ngày <%= LegalController::EFFECTIVE_DATE %></p>
+
+<h2>1. Phạm vi sử dụng</h2>
+<p>
+  Hệ thống xếp lịch Trà IELTS (<a href="https://traielts.com">traielts.com</a>) là công cụ nội bộ, chỉ dành cho nhân sự của
+  Trung tâm Trà IELTS đã được Admin cấp tài khoản. Hệ thống không cung cấp dịch vụ cho công chúng.
+</p>
+
+<h2>2. Tài khoản</h2>
+<ul>
+  <li>Đăng nhập bằng đúng Gmail đã được Admin đăng ký cho bạn.</li>
+  <li>Không chia sẻ tài khoản hoặc mật khẩu cho người khác.</li>
+  <li>Bạn chịu trách nhiệm về các thao tác thực hiện dưới tài khoản của mình.</li>
+</ul>
+
+<h2>3. Bảo mật thông tin học viên</h2>
+<p>
+  Thông tin học viên trong hệ thống chỉ được sử dụng cho công việc tại trung tâm. Không sao chép, chụp màn hình hay chia sẻ
+  thông tin này ra bên ngoài khi chưa được trung tâm cho phép.
+</p>
+
+<h2>4. Quyền của trung tâm</h2>
+<p>
+  Admin có thể thay đổi vai trò, chuyển sang ngừng hoạt động hoặc xóa tài khoản bất cứ lúc nào, ví dụ khi nhân sự thay đổi công việc
+  hoặc nghỉ việc.
+</p>
+
+<h2>5. Thay đổi hệ thống và điều khoản</h2>
+<p>
+  Trung tâm có thể cập nhật tính năng của hệ thống và nội dung điều khoản này. Việc tiếp tục sử dụng hệ thống sau khi cập nhật
+  đồng nghĩa với việc bạn đồng ý với nội dung mới.
+</p>
+
+<h2>6. Liên hệ</h2>
+<p>
+  Mọi câu hỏi về điều khoản sử dụng, vui lòng liên hệ
+  <a href="mailto:<%= LegalController::CONTACT_EMAIL %>"><%= LegalController::CONTACT_EMAIL %></a>.
+  Xem thêm <a href="<%= privacy_path %>">Chính sách quyền riêng tư</a>.
+</p>

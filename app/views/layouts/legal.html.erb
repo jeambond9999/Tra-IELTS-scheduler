@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <title><%= content_for(:title) %> · Trà IELTS</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="icon" href="/icon.png" type="image/png">
+    <style>
+      :root { --ink: #1e293b; --muted: #64748b; --line: #e2e8f0; --brand: #047857; --paper: #f8fafc; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.7 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+      .wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 56px; }
+      header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+      header img { height: 36px; width: auto; }
+      nav { display: flex; gap: 18px; font-size: 14px; font-weight: 600; }
+      nav a { color: var(--muted); text-decoration: none; }
+      nav a[aria-current="page"] { color: var(--brand); }
+      nav a:hover { color: var(--ink); }
+      main { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 32px; margin-top: 28px; }
+      h1 { font-size: 28px; line-height: 1.25; margin: 0 0 6px; }
+      .meta { color: var(--muted); font-size: 14px; margin: 0 0 24px; }
+      h2 { font-size: 18px; margin: 28px 0 8px; }
+      p, li { max-width: 65ch; }
+      ul { padding-left: 22px; margin: 8px 0; }
+      a { color: var(--brand); }
+      footer { color: var(--muted); font-size: 13px; text-align: center; margin-top: 28px; }
+      @media (max-width: 520px) { main { padding: 22px 18px; } h1 { font-size: 24px; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <a href="/"><img src="/traielts-logo.png" alt="Trà IELTS"></a>
+        <nav>
+          <a href="<%= privacy_path %>" <%= 'aria-current="page"'.html_safe if current_page?(privacy_path) %>>Chính sách quyền riêng tư</a>
+          <a href="<%= terms_path %>" <%= 'aria-current="page"'.html_safe if current_page?(terms_path) %>>Điều khoản sử dụng</a>
+        </nav>
+      </header>
+      <main>
+        <%= yield %>
+      </main>
+      <footer>Trà IELTS &copy; <%= Date.current.year %> · Liên hệ: <a href="mailto:<%= LegalController::CONTACT_EMAIL %>"><%= LegalController::CONTACT_EMAIL %></a></footer>
+    </div>
+  </body>
+</html>
