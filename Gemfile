@@ -118,7 +118,7 @@ gem "discard", "~> 2.0"
 
 # JSON store enhancements
 gem "store_attribute", "~> 2.0"
-gem "store_model", "~> 4.4"
+gem "store_model", "~> 4.6"
 
 # Solid Queue web UI
 gem "mission_control-jobs", "~> 1.1"
