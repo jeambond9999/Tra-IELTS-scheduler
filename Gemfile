@@ -78,7 +78,7 @@ group :development do
   gem "rack-mini-profiler", "~> 4.0"
 
   # N+1 query detection
-  gem "bullet", "~> 8.1"
+  gem "bullet", "~> 8.2"
 end
 
 group :test do
